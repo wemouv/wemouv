@@ -12,4 +12,19 @@ public class ParticipationCovoiturageId implements Serializable {
 
     // Getters & Setters
 
+    public Long getUtilisateurId() {
+        return utilisateurId;
+    }
+
+    public void setUtilisateurId(Long utilisateurId) {
+        this.utilisateurId = utilisateurId;
+    }
+
+    public Long getCovoiturageId() {
+        return covoiturageId;
+    }
+
+    public void setCovoiturageId(Long covoiturageId) {
+        this.covoiturageId = covoiturageId;
+    }
 }
