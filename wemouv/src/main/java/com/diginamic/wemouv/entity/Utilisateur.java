@@ -1,7 +1,8 @@
 package com.diginamic.wemouv.entity;
 
+import com.diginamic.wemouv.enums.Role;
 import jakarta.persistence.*;
-import org.springframework.context.annotation.Role;
+
 
 
 @Entity
