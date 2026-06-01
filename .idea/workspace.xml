@@ -5,18 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="24a2f450-3fc0-4661-81e3-45d947610ea6" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Covoiturage.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/ParticipationCovoiturageId.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Reservation.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Utilisateur.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Vehicule.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/VehiculeDeService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/VehiculePerso.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/enums/Categorie.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/enums/Marque.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/enums/Motorisation.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/enums/Role.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/enums/Statut.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wemouv/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/pom.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -53,9 +42,10 @@
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "authenticator",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/W/workspace_cda/wemouv",
     "node.js.detected.package.eslint": "true",
@@ -90,7 +80,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1780301514116</updated>
-      <workItem from="1780301515468" duration="3490000" />
+      <workItem from="1780301515468" duration="5320000" />
     </task>
     <servers />
   </component>
