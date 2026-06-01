@@ -13,6 +13,8 @@
       <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Vehicule.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Vehicule.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/VehiculeDeService.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/VehiculeDeService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/VehiculePerso.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/VehiculePerso.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/service/CovoiturageService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -134,6 +136,7 @@
     "Spring Boot.WemouvApplication.executor": "Run",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "git-widget-placeholder": "entity__bases",
+    "git-widget-placeholder": "service__bases",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/W/workspace_cda/wemouv",
     "node.js.detected.package.eslint": "true",
