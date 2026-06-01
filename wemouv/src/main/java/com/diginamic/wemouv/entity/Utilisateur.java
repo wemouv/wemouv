@@ -10,9 +10,6 @@ import jakarta.persistence.*;
 public class Utilisateur {
 
 
-
-    @jakarta.persistence.Id
-    private Long id1;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -36,14 +33,7 @@ public class Utilisateur {
 
     private Boolean compteActif;
 
+    public Long getId() {return id;}
 
-
-    public Long getId1() {
-        return id1;
-    }
-
-    public void setId1(Long id1) {
-        this.id1 = id1;
-    }
-
+    public void setId(Long id) {this.id = id;}
 }
