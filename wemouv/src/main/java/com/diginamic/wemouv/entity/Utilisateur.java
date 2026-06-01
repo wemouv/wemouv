@@ -11,7 +11,7 @@ public class Utilisateur {
 
 
 
-    @jakarta.persistence.Id
+    @Id
     private Long id1;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

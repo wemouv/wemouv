@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+
+<!-- HEAD -->
+<th:block th:replace="fragments/head :: head('Accueil')"></th:block>
+
+<body class="bg-light">
+
+<!-- NAVBAR -->
+<th:block th:replace="fragments/navbar :: navbar"></th:block>
+
+<!-- CONTENU DE LA PAGE -->
+<main class="container mt-4">
+
+    <!-- Titre principal -->
+    <h1 class="mb-2">
+        Bienvenu <span th:text="${user.prenom}">Utilisateur</span>
+    </h1>
+
+    <h3 class="text-secondary mb-4">Covoiturages disponibles</h3>
+
+    <!-- Grille des trajets -->
+    <div class="row g-3">
+
+        <!-- Une carte par trajet -->
+        <div class="col-12" th:each="trajet : ${trajets}">
+            <div class="d-flex align-items-center p-3 shadow-sm rounded bg-white">
+
+                <!-- Icône véhicule -->
+                <div class="me-3">
+                    <img th:src="@{/img/voiture.png}" alt="vehicule" width="48">
+                </div>
+
+                <!-- Informations -->
+                <div class="flex-grow-1">
+                    <div>
+                        <strong>Organisateur :</strong>
+                        <span th:text="${trajet.organisateur}">Nom</span>
+                    </div>
+
+                    <div>
+                        <strong>Type de véhicule :</strong>
+                        <span th:text="${trajet.vehicule}">Type</span>
+                    </div>
+
+                    <div>
+                        <strong>Trajet :</strong>
+                        <span th:text="${trajet.adresseDepart}">Départ</span>
+                        <span class="mx-1">»»</span>
+                        <span th:text="${trajet.adresseArrive}">Arrivée</span>
+                    </div>
+                </div>
+
+                <!-- Badge statut -->
+                <div class="ms-3">
+                    <span class="badge bg-primary fs-5 px-3 py-2"
+                          th:text="${trajet.statut}">D</span>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+</main>
+
+<!-- FOOTER -->
+<th:block th:replace="fragments/footer :: footer"></th:block>
+
+</body>
+</html>
