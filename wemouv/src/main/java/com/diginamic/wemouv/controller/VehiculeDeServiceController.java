@@ -1,7 +1,7 @@
 package com.diginamic.wemouv.controller;
 
 import com.diginamic.wemouv.entity.VehiculeDeService;
-import com.diginamic.wemouv.repository.VehiculeDeServiceRepository;
+import com.diginamic.wemouv.service.VehiculeDeServiceService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,10 +15,11 @@ import java.util.List;
 @RequestMapping("/api/vehicules/service")
 public class VehiculeDeServiceController {
 
-    private final VehiculeDeServiceRepository vehiculeDeServiceRepository;
+    private final VehiculeDeServiceService vehiculeDeServiceService;
 
-    public VehiculeDeServiceController(VehiculeDeServiceRepository vehiculeDeServiceRepository) {
-        this.vehiculeDeServiceRepository = vehiculeDeServiceRepository;
+    // Injection du Service uniquement
+    public VehiculeDeServiceController(VehiculeDeServiceService vehiculeDeServiceService) {
+        this.vehiculeDeServiceService = vehiculeDeServiceService;
     }
 
     /**
@@ -26,7 +27,7 @@ public class VehiculeDeServiceController {
      */
     @GetMapping
     public List<VehiculeDeService> getAllVehiculesDeService() {
-        return vehiculeDeServiceRepository.findAll();
+        return vehiculeDeServiceService.findAll();
     }
 
     /**
@@ -34,9 +35,12 @@ public class VehiculeDeServiceController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<VehiculeDeService> getVehiculeDeServiceById(@PathVariable Long id) {
-        return vehiculeDeServiceRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            VehiculeDeService vehicule = vehiculeDeServiceService.findById(id);
+            return ResponseEntity.ok(vehicule);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**
@@ -44,29 +48,21 @@ public class VehiculeDeServiceController {
      */
     @PostMapping
     public ResponseEntity<VehiculeDeService> createVehiculeDeService(@RequestBody VehiculeDeService vehiculeDeService) {
-        VehiculeDeService savedVehicule = vehiculeDeServiceRepository.save(vehiculeDeService);
+        VehiculeDeService savedVehicule = vehiculeDeServiceService.create(vehiculeDeService);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedVehicule);
     }
 
     /**
-     * Met à jour les informations d'un véhicule de service (statut, localisation, etc.).
+     * Met à jour les informations d'un véhicule de service.
      */
     @PutMapping("/{id}")
     public ResponseEntity<VehiculeDeService> updateVehiculeDeService(@PathVariable Long id, @RequestBody VehiculeDeService details) {
-        return vehiculeDeServiceRepository.findById(id).map(vehicule -> {
-            vehicule.setImmatriculation(details.getImmatriculation());
-            vehicule.setMarque(details.getMarque());
-            vehicule.setMotorisation(details.getMotorisation());
-            vehicule.setNbPlace(details.getNbPlace());
-            vehicule.setPhotoUrl(details.getPhotoUrl());
-            vehicule.setCo2Km(details.getCo2Km());
-            vehicule.setCategorie(details.getCategorie());
-            vehicule.setLocalisation(details.getLocalisation());
-            vehicule.setStatut(details.getStatut());
-            
-            VehiculeDeService updated = vehiculeDeServiceRepository.save(vehicule);
+        try {
+            VehiculeDeService updated = vehiculeDeServiceService.update(id, details);
             return ResponseEntity.ok(updated);
-        }).orElse(ResponseEntity.notFound().build());
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**
@@ -74,9 +70,11 @@ public class VehiculeDeServiceController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteVehiculeDeService(@PathVariable Long id) {
-        return vehiculeDeServiceRepository.findById(id).map(vehicule -> {
-            vehiculeDeServiceRepository.delete(vehicule);
-            return ResponseEntity.noContent().<Void>build();
-        }).orElse(ResponseEntity.notFound().build());
+        try {
+            vehiculeDeServiceService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

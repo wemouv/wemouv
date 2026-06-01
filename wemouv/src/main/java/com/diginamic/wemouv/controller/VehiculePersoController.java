@@ -1,7 +1,7 @@
 package com.diginamic.wemouv.controller;
 
 import com.diginamic.wemouv.entity.VehiculePerso;
-import com.diginamic.wemouv.repository.VehiculePersoRepository;
+import com.diginamic.wemouv.service.VehiculePersoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,10 +15,11 @@ import java.util.List;
 @RequestMapping("/api/vehicules/perso")
 public class VehiculePersoController {
 
-    private final VehiculePersoRepository vehiculePersoRepository;
+    private final VehiculePersoService vehiculePersoService;
 
-    public VehiculePersoController(VehiculePersoRepository vehiculePersoRepository) {
-        this.vehiculePersoRepository = vehiculePersoRepository;
+    // Injection du Service uniquement
+    public VehiculePersoController(VehiculePersoService vehiculePersoService) {
+        this.vehiculePersoService = vehiculePersoService;
     }
 
     /**
@@ -26,7 +27,7 @@ public class VehiculePersoController {
      */
     @GetMapping
     public List<VehiculePerso> getAllVehiculesPerso() {
-        return vehiculePersoRepository.findAll();
+        return vehiculePersoService.findAll();
     }
 
     /**
@@ -34,7 +35,7 @@ public class VehiculePersoController {
      */
     @GetMapping("/proprietaire/{proprietaireId}")
     public List<VehiculePerso> getVehiculesByProprietaire(@PathVariable Long proprietaireId) {
-        return vehiculePersoRepository.findByProprietaireId(proprietaireId);
+        return vehiculePersoService.findByProprietaire(proprietaireId);
     }
 
     /**
@@ -42,7 +43,7 @@ public class VehiculePersoController {
      */
     @PostMapping
     public ResponseEntity<VehiculePerso> createVehiculePerso(@RequestBody VehiculePerso vehiculePerso) {
-        VehiculePerso savedVehicule = vehiculePersoRepository.save(vehiculePerso);
+        VehiculePerso savedVehicule = vehiculePersoService.create(vehiculePerso);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedVehicule);
     }
 
@@ -51,9 +52,11 @@ public class VehiculePersoController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteVehiculePerso(@PathVariable Long id) {
-        return vehiculePersoRepository.findById(id).map(vehicule -> {
-            vehiculePersoRepository.delete(vehicule);
-            return ResponseEntity.noContent().<Void>build();
-        }).orElse(ResponseEntity.notFound().build());
+        try {
+            vehiculePersoService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
