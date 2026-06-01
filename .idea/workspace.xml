@@ -5,6 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="24a2f450-3fc0-4661-81e3-45d947610ea6" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/controller/HomeController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wemouv/src/main/resources/static/css/style.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wemouv/src/main/resources/static/img/logo.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wemouv/src/main/resources/static/img/profil.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wemouv/src/main/resources/templates/admin/create-user.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wemouv/src/main/resources/templates/auth/login.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wemouv/src/main/resources/templates/fragments/footer.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wemouv/src/main/resources/templates/fragments/head.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wemouv/src/main/resources/templates/fragments/navbar.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wemouv/src/main/resources/templates/index.html" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/repository/CovoiturageRepository.java" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/repository/ReservationRepository.java" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/repository/UtilisateurRepository.java" afterDir="false" />
@@ -16,6 +26,10 @@
       <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Utilisateur.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Utilisateur.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wemouv/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/controller/AuthController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Utilisateur.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Utilisateur.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/security/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/security/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wemouv/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/resources/application.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -134,6 +148,7 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "git-widget-placeholder": "moteur__template",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "git-widget-placeholder": "repo",
     "git-widget-placeholder": "authenticator",
@@ -148,6 +163,15 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\W\workspace_cda\wemouv\wemouv\src\main\resources\templates" />
+      <recent name="D:\W\workspace_cda\wemouv\wemouv\src\main\resources" />
+      <recent name="D:\W\workspace_cda\wemouv\wemouv\src\main\resources\templates\admin" />
+      <recent name="D:\W\workspace_cda\wemouv\wemouv\src\main\resources\static" />
+      <recent name="D:\W\workspace_cda\wemouv\wemouv\src\main\resources\static\css" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="WemouvApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="wemouv" />
