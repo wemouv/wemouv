@@ -2,7 +2,7 @@ package com.diginamic.wemouv.controller;
 
 import com.diginamic.wemouv.entity.Covoiturage;
 import com.diginamic.wemouv.entity.ParticipationCovoiturage;
-import com.diginamic.wemouv.entity.ParticipationCovoiturageId;
+import com.diginamic.wemouv.entity.ParticipationCovoiturage;
 import com.diginamic.wemouv.repository.CovoiturageRepository;
 import com.diginamic.wemouv.repository.ParticipationCovoiturageRepository;
 import org.springframework.http.HttpStatus;
