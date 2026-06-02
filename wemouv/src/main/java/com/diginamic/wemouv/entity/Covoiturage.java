@@ -154,4 +154,12 @@ public class Covoiturage {
 
     /** @param organisateur organisateur du covoiturage */
     public void setOrganisateur(Utilisateur organisateur) { this.organisateur = organisateur; }
+
+    public Utilisateur getConducteur() {
+        return conducteur;
+    }
+
+    public void setConducteur(Utilisateur conducteur) {
+        this.conducteur = conducteur;
+    }
 }
