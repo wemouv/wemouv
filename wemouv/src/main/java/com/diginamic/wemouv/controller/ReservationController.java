@@ -1,7 +1,7 @@
 package com.diginamic.wemouv.controller;
 
 import com.diginamic.wemouv.entity.Reservation;
-import com.diginamic.wemouv.repository.ReservationRepository;
+import com.diginamic.wemouv.service.ReservationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,18 +15,19 @@ import java.util.List;
 @RequestMapping("/api/reservations")
 public class ReservationController {
 
-    private final ReservationRepository reservationRepository;
+    private final ReservationService reservationService;
 
-    public ReservationController(ReservationRepository reservationRepository) {
-        this.reservationRepository = reservationRepository;
+    // Injection du Service uniquement
+    public ReservationController(ReservationService reservationService) {
+        this.reservationService = reservationService;
     }
 
     /**
-     * Liste toutes les réservations de l'entreprise (réservé aux admins en production).
+     * Liste toutes les réservations de l'entreprise.
      */
     @GetMapping
     public List<Reservation> getAllReservations() {
-        return reservationRepository.findAll();
+        return reservationService.findAll();
     }
 
     /**
@@ -34,9 +35,12 @@ public class ReservationController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<Reservation> getReservationById(@PathVariable Long id) {
-        return reservationRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            Reservation reservation = reservationService.findById(id);
+            return ResponseEntity.ok(reservation);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**
@@ -44,7 +48,7 @@ public class ReservationController {
      */
     @GetMapping("/utilisateur/{utilisateurId}")
     public List<Reservation> getReservationsByUtilisateur(@PathVariable Long utilisateurId) {
-        return reservationRepository.findByUtilisateurId(utilisateurId);
+        return reservationService.findByUtilisateur(utilisateurId);
     }
 
     /**
@@ -52,7 +56,7 @@ public class ReservationController {
      */
     @GetMapping("/vehicule/{vehiculeId}")
     public List<Reservation> getReservationsByVehicule(@PathVariable Long vehiculeId) {
-        return reservationRepository.findByVehiculeId(vehiculeId);
+        return reservationService.findByVehicule(vehiculeId);
     }
 
     /**
@@ -60,7 +64,7 @@ public class ReservationController {
      */
     @PostMapping
     public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation) {
-        Reservation savedReservation = reservationRepository.save(reservation);
+        Reservation savedReservation = reservationService.create(reservation);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedReservation);
     }
 
@@ -69,16 +73,12 @@ public class ReservationController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<Reservation> updateReservation(@PathVariable Long id, @RequestBody Reservation details) {
-        return reservationRepository.findById(id).map(reservation -> {
-            reservation.setDateDebut(details.getDateDebut());
-            reservation.setDateFin(details.getDateFin());
-            reservation.setVehicule(details.getVehicule());
-            reservation.setUtilisateur(details.getUtilisateur());
-            reservation.setStatut(details.getStatut());
-            
-            Reservation updated = reservationRepository.save(reservation);
+        try {
+            Reservation updated = reservationService.update(id, details);
             return ResponseEntity.ok(updated);
-        }).orElse(ResponseEntity.notFound().build());
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**
@@ -86,10 +86,11 @@ public class ReservationController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {
-        return reservationRepository.findById(id).map(reservation -> {
-            reservationRepository.delete(reservation);
-            return ResponseEntity.noContent().<Void>build();
-        }).orElse(ResponseEntity.notFound().build());
+        try {
+            reservationService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
-    
 }

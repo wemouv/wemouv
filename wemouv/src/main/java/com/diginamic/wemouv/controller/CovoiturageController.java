@@ -5,11 +5,11 @@ import com.diginamic.wemouv.entity.ParticipationCovoiturage;
 import com.diginamic.wemouv.entity.ParticipationCovoiturage;
 import com.diginamic.wemouv.repository.CovoiturageRepository;
 import com.diginamic.wemouv.repository.ParticipationCovoiturageRepository;
+import com.diginamic.wemouv.service.CovoiturageService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -19,16 +19,13 @@ import java.util.List;
 @RequestMapping("/api/covoiturages")
 public class CovoiturageController {
 
-    private final CovoiturageRepository covoiturageRepository;
-    private final ParticipationCovoiturageRepository participationCovoiturageRepository;
+    private final CovoiturageService covoiturageService;
 
     /**
-     * Constructeur avec injection des deux repositories nécessaires.
+     * Constructeur avec injection unique du Service.
      */
-    public CovoiturageController(CovoiturageRepository covoiturageRepository,
-                                 ParticipationCovoiturageRepository participationCovoiturageRepository) {
-        this.covoiturageRepository = covoiturageRepository;
-        this.participationCovoiturageRepository = participationCovoiturageRepository;
+    public CovoiturageController(CovoiturageService covoiturageService) {
+        this.covoiturageService = covoiturageService;
     }
 
     /**
@@ -36,7 +33,7 @@ public class CovoiturageController {
      */
     @GetMapping
     public List<Covoiturage> getAllCovoiturages() {
-        return covoiturageRepository.findAll();
+        return covoiturageService.findAll();
     }
 
     /**
@@ -44,9 +41,12 @@ public class CovoiturageController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<Covoiturage> getCovoiturageById(@PathVariable Long id) {
-        return covoiturageRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            Covoiturage covoiturage = covoiturageService.findById(id);
+            return ResponseEntity.ok(covoiturage);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**
@@ -54,10 +54,7 @@ public class CovoiturageController {
      */
     @PostMapping
     public ResponseEntity<Covoiturage> createCovoiturage(@RequestBody Covoiturage covoiturage) {
-        covoiturage.setDateCreation(LocalDateTime.now());
-        covoiturage.setNbPlacesRestantes(covoiturage.getNbPlacesInitial());
-        
-        Covoiturage savedCovoiturage = covoiturageRepository.save(covoiturage);
+        Covoiturage savedCovoiturage = covoiturageService.create(covoiturage);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedCovoiturage);
     }
 
@@ -66,20 +63,12 @@ public class CovoiturageController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<Covoiturage> updateCovoiturage(@PathVariable Long id, @RequestBody Covoiturage covoiturageDetails) {
-        return covoiturageRepository.findById(id).map(covoiturage -> {
-            covoiturage.setAdresseDepart(covoiturageDetails.getAdresseDepart());
-            covoiturage.setAdresseArrive(covoiturageDetails.getAdresseArrive());
-            covoiturage.setDateDepart(covoiturageDetails.getDateDepart());
-            covoiturage.setDureeTrajet(covoiturageDetails.getDureeTrajet());
-            covoiturage.setDistanceKm(covoiturageDetails.getDistanceKm());
-            covoiturage.setNbPlacesInitial(covoiturageDetails.getNbPlacesInitial());
-            covoiturage.setNbPlacesRestantes(covoiturageDetails.getNbPlacesRestantes());
-            covoiturage.setStatut(covoiturageDetails.getStatut());
-            covoiturage.setVehicule(covoiturageDetails.getVehicule());
-            
-            Covoiturage updatedCovoiturage = covoiturageRepository.save(covoiturage);
+        try {
+            Covoiturage updatedCovoiturage = covoiturageService.update(id, covoiturageDetails);
             return ResponseEntity.ok(updatedCovoiturage);
-        }).orElse(ResponseEntity.notFound().build());
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**
@@ -87,63 +76,46 @@ public class CovoiturageController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCovoiturage(@PathVariable Long id) {
-        return covoiturageRepository.findById(id).map(covoiturage -> {
-            covoiturageRepository.delete(covoiturage);
-            return ResponseEntity.noContent().<Void>build();
-        }).orElse(ResponseEntity.notFound().build());
+        try {
+            covoiturageService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**
      * Permet à un utilisateur de réserver une place (participer) dans un covoiturage.
      */
     @PostMapping("/{covoiturageId}/participer/{utilisateurId}")
-    public ResponseEntity<ParticipationCovoiturage> participer(
+    public ResponseEntity<?> participer(
             @PathVariable Long covoiturageId, 
             @PathVariable Long utilisateurId) {
-            
-        return covoiturageRepository.findById(covoiturageId).map(covoiturage -> {
-            if (covoiturage.getNbPlacesRestantes() <= 0) {
-                return ResponseEntity.badRequest().<ParticipationCovoiturage>build();
-            }
-
-            // Décrémenter les places restantes
-            covoiturage.setNbPlacesRestantes(covoiturage.getNbPlacesRestantes() - 1);
-            covoiturageRepository.save(covoiturage);
-
-            // Créer la participation
-            ParticipationCovoiturage participation = new ParticipationCovoiturage();
-            participation.getId().setCovoiturageId(covoiturageId);
-            participation.getId().setUtilisateurId(utilisateurId);
-            participation.setStatut("VALIDE");
-
-            ParticipationCovoiturage saved = participationCovoiturageRepository.save(participation);
-            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
-            
-        }).orElse(ResponseEntity.notFound().build());
+        try {
+            ParticipationCovoiturage participation = covoiturageService.participer(covoiturageId, utilisateurId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(participation);
+        } catch (IllegalStateException e) {
+            // Plus de places disponibles (Erreur 400)
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (RuntimeException e) {
+            // Covoiturage introuvable (Erreur 404)
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**
      * Permet à un utilisateur d'annuler sa participation à un covoiturage.
      */
     @DeleteMapping("/{covoiturageId}/participer/{utilisateurId}")
-    public ResponseEntity<Void> annulerParticipation(
+    public ResponseEntity<?> annulerParticipation(
             @PathVariable Long covoiturageId, 
             @PathVariable Long utilisateurId) {
-            
-        ParticipationCovoiturageId id = new ParticipationCovoiturageId();
-        id.setCovoiturageId(covoiturageId);
-        id.setUtilisateurId(utilisateurId);
-
-        return participationCovoiturageRepository.findById(id).map(participation -> {
-            participationCovoiturageRepository.delete(participation);
-
-            // Ré-augmenter le nombre de places sur le trajet
-            covoiturageRepository.findById(covoiturageId).ifPresent(covoiturage -> {
-                covoiturage.setNbPlacesRestantes(covoiturage.getNbPlacesRestantes() + 1);
-                covoiturageRepository.save(covoiturage);
-            });
-
-            return ResponseEntity.noContent().<Void>build();
-        }).orElse(ResponseEntity.notFound().build());
+        try {
+            covoiturageService.annulerParticipation(covoiturageId, utilisateurId);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            // Participation ou covoiturage introuvable
+            return ResponseEntity.notFound().build();
+        }
     }
 }
