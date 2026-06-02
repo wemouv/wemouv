@@ -1,6 +1,7 @@
 package com.diginamic.wemouv.entity;
 
 import com.diginamic.wemouv.enums.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 /**
@@ -47,6 +48,7 @@ public class Utilisateur {
     private String email;
 
     /** Mot de passe chiffré de l'utilisateur. */
+    @JsonIgnore
     @Column(nullable = false, length = 255)
     private String motDePasse;
 

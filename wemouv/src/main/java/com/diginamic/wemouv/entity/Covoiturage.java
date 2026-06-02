@@ -2,6 +2,8 @@ package com.diginamic.wemouv.entity;
 
 import com.diginamic.wemouv.enums.Statut;
 import jakarta.persistence.*;
+import lombok.ToString;
+
 import java.time.LocalDateTime;
 
 /**

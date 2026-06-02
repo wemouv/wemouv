@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Contrôleur REST pour la gestion des covoiturages et des participations passagers.
@@ -115,4 +116,17 @@ public class CovoiturageController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    /**
+     * TÂCHE 4 : Récupère les réservations d'un passager (triées par "enCours" et "historique").
+     * Permet à un utilisateur de voir ses reservations.
+     */
+    @GetMapping("/mes-reservations/{utilisateurId}")
+    public ResponseEntity<Map<String, List<Covoiturage>>> getMesReservations(@PathVariable Long utilisateurId) {
+
+        Map<String, List<Covoiturage>> reservations = covoiturageService.getReservationsPassager(utilisateurId);
+        return ResponseEntity.ok(reservations);
+    }
+
+
 }
