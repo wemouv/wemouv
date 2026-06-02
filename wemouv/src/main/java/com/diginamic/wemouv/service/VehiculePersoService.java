@@ -24,11 +24,30 @@ public class VehiculePersoService {
                 .orElseThrow(() -> new RuntimeException("Véhicule perso introuvable"));
     }
 
-    public VehiculePerso save(VehiculePerso vehiculePerso) {
+    public VehiculePerso create(VehiculePerso vehiculePerso) {
         return vehiculePersoRepository.save(vehiculePerso);
+    }
+
+    public VehiculePerso update(Long id, VehiculePerso vehiculePerso) {
+        VehiculePerso existing = findById(id);
+
+        existing.setImmatriculation(vehiculePerso.getImmatriculation());
+        existing.setMarque(vehiculePerso.getMarque());
+        existing.setMotorisation(vehiculePerso.getMotorisation());
+        existing.setNbPlace(vehiculePerso.getNbPlace());
+        existing.setPhotoUrl(vehiculePerso.getPhotoUrl());
+        existing.setCo2Km(vehiculePerso.getCo2Km());
+        existing.setCategorie(vehiculePerso.getCategorie());
+        existing.setProprietaire(vehiculePerso.getProprietaire());
+
+        return vehiculePersoRepository.save(existing);
     }
 
     public void delete(Long id) {
         vehiculePersoRepository.deleteById(id);
+    }
+
+    public List<VehiculePerso> findByProprietaire(Long proprietaireId) {
+        return vehiculePersoRepository.findByProprietaireId(proprietaireId);
     }
 }

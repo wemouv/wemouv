@@ -1,6 +1,7 @@
 package com.diginamic.wemouv.service;
 
 import com.diginamic.wemouv.entity.Covoiturage;
+import com.diginamic.wemouv.entity.ParticipationCovoiturage;
 import com.diginamic.wemouv.enums.Statut;
 import com.diginamic.wemouv.repository.CovoiturageRepository;
 import org.springframework.stereotype.Service;
@@ -37,12 +38,25 @@ public class CovoiturageService {
         return covoiturageRepository.findByStatut(statut);
     }
 
-    public Covoiturage save(Covoiturage covoiturage) {
+    public Covoiturage create(Covoiturage covoiturage) {
+        return covoiturageRepository.save(covoiturage);
+    }
+
+    public Covoiturage update(Long id,Covoiturage covoiturage) {
         return covoiturageRepository.save(covoiturage);
     }
 
     public void delete(Long id) {
         covoiturageRepository.deleteById(id);
+    }
+
+    public ParticipationCovoiturage participer(Long covoiturageId, Long utilisateurId) {
+    return null;
+    }
+
+
+    public void annulerParticipation(Long covoiturageId, Long utilisateurId) {
+
     }
 }
 
