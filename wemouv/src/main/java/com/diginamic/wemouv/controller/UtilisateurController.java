@@ -11,7 +11,7 @@ import java.util.List;
  * Contrôleur REST pour la gestion des profils collaborateurs.
  */
 @RestController
-@RequestMapping("/api/utilisateurs")
+@RequestMapping("/utilisateurs")
 public class UtilisateurController {
 
     private final UtilisateurService utilisateurService;

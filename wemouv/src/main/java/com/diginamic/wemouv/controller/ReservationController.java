@@ -12,7 +12,7 @@ import java.util.List;
  * Contrôleur REST pour la gestion des réservations (de véhicules de service).
  */
 @RestController
-@RequestMapping("/api/reservations")
+@RequestMapping("/reservations")
 public class ReservationController {
 
     private final ReservationService reservationService;

@@ -21,18 +21,5 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // Page d'inscription
-    @GetMapping("/register")
-    public String registerForm(Model model) {
-        model.addAttribute("utilisateur", new Utilisateur());
-        return "auth/register"; // templates/auth/register.html
-    }
 
-    // Traitement du formulaire d'inscription
-    @PostMapping("/register")
-    public String register(@ModelAttribute Utilisateur utilisateur) {
-        utilisateur.setMotDePasse(passwordEncoder.encode(utilisateur.getMotDePasse()));
-        utilisateurRepository.save(utilisateur);
-        return "redirect:/login?registered";
-    }
 }
