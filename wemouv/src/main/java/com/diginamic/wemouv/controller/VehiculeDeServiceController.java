@@ -12,7 +12,7 @@ import java.util.List;
  * Contrôleur REST pour la gestion des véhicules de service de l'entreprise.
  */
 @RestController
-@RequestMapping("/vehicules/service")
+@RequestMapping("/api/vehicules/service")
 public class VehiculeDeServiceController {
 
     private final VehiculeDeServiceService vehiculeDeServiceService;

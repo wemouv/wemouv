@@ -1,25 +1,74 @@
 package com.diginamic.wemouv.controller;
 
-import com.diginamic.wemouv.entity.Utilisateur;
-import com.diginamic.wemouv.repository.UtilisateurRepository;
+import com.diginamic.wemouv.dto.AuthResponse;
+import com.diginamic.wemouv.dto.LoginRequest;
+import com.diginamic.wemouv.security.JwtService;
 import org.springframework.security.authentication.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.ui.Model;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
+@RequestMapping("/api/auth")
 public class AuthController {
 
-    private final UtilisateurRepository utilisateurRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authManager;
+    private final UserDetailsService userDetailsService;
+    private final JwtService jwtService;
 
-    public AuthController(UtilisateurRepository utilisateurRepository,
-                          PasswordEncoder passwordEncoder) {
-        this.utilisateurRepository = utilisateurRepository;
-        this.passwordEncoder = passwordEncoder;
+    public AuthController(
+            AuthenticationManager authManager,
+            UserDetailsService userDetailsService,
+            JwtService jwtService
+    ) {
+        this.authManager = authManager;
+        this.userDetailsService = userDetailsService;
+        this.jwtService = jwtService;
     }
 
+    @PostMapping("/login")
+    public AuthResponse login(
+            @RequestBody LoginRequest request
+    ) {
 
+        authManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
+
+        UserDetails user =
+                userDetailsService.loadUserByUsername(
+                        request.getEmail()
+                );
+
+        String token =
+                jwtService.generateToken(user);
+
+        return new AuthResponse(token);
+    }
+
+    @PostMapping("/register")
+    public AuthResponse register(
+            @RequestBody LoginRequest request
+    ) {
+
+        authManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
+
+        UserDetails user =
+                userDetailsService.loadUserByUsername(
+                        request.getEmail()
+                );
+
+        String token =
+                jwtService.generateToken(user);
+
+        return new AuthResponse(token);
+    }
 }

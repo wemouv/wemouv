@@ -13,7 +13,7 @@ import java.util.List;
  * Contrôleur REST pour la gestion des covoiturages et des participations passagers.
  */
 @RestController
-@RequestMapping("/covoiturages")
+@RequestMapping("/api/covoiturages")
 public class CovoiturageController {
 
     private final CovoiturageService covoiturageService;
