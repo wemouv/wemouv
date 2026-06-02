@@ -1,6 +1,6 @@
 package com.diginamic.wemouv.entity;
 
-import com.diginamic.wemouv.enums.Statut;
+import com.diginamic.wemouv.enums.Disponibilite;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -35,7 +35,7 @@ public class VehiculeDeService extends Vehicule {
 
     /** Statut du véhicule (ex : DISPONIBLE, EN_MISSION, HORS_SERVICE). */
     @Enumerated(EnumType.STRING)
-    private Statut statut;
+    private Disponibilite disponibilite;
 
     // --------------------
     // Getters & Setters
@@ -52,12 +52,12 @@ public class VehiculeDeService extends Vehicule {
     }
 
     /** @return le statut du véhicule */
-    public Statut getStatut() {
-        return statut;
+    public Disponibilite getStatut() {
+        return disponibilite;
     }
 
-    /** @param statut statut du véhicule */
-    public void setStatut(Statut statut) {
-        this.statut = statut;
+    /** @param disponibilite du véhicule */
+    public void setStatut(Disponibilite disponibilite) {
+        this.disponibilite = disponibilite;
     }
 }

@@ -1,5 +1,6 @@
 package com.diginamic.wemouv.controller;
 
+import com.diginamic.wemouv.dto.CovoiturageRequest;
 import com.diginamic.wemouv.entity.Covoiturage;
 import com.diginamic.wemouv.entity.ParticipationCovoiturage;
 import com.diginamic.wemouv.service.CovoiturageService;
@@ -58,17 +59,16 @@ public class CovoiturageController {
         }
     }
 
-    /**
-     * Crée et enregistre un nouveau covoiturage dans le système.
-     *
-     * @param covoiturage l'entité contenant les informations du trajet à insérer
-     * @return un {@link ResponseEntity} contenant l'entité persistée avec le statut HTTP 201 (Created)
-     */
+
     @PostMapping
-    public ResponseEntity<Covoiturage> createCovoiturage(@RequestBody Covoiturage covoiturage) {
-        Covoiturage savedCovoiturage = covoiturageService.create(covoiturage);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedCovoiturage);
+    public ResponseEntity<?> createCovoiturage(
+            @RequestBody CovoiturageRequest request
+    ) {
+
+        System.out.println("REQUEST OK");
+        return ResponseEntity.ok(request);
     }
+
 
     /**
      * Met à jour les informations d'un covoiturage existant.

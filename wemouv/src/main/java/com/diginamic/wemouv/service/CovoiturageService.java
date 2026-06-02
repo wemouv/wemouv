@@ -1,10 +1,15 @@
 package com.diginamic.wemouv.service;
 
+import com.diginamic.wemouv.dto.CovoiturageRequest;
 import com.diginamic.wemouv.entity.Covoiturage;
 import com.diginamic.wemouv.entity.ParticipationCovoiturage;
+import com.diginamic.wemouv.entity.Utilisateur;
+import com.diginamic.wemouv.entity.Vehicule;
 import com.diginamic.wemouv.enums.Statut;
 import com.diginamic.wemouv.repository.CovoiturageRepository;
 import com.diginamic.wemouv.repository.ParticipationCovoiturageRepository;
+import com.diginamic.wemouv.repository.UtilisateurRepository;
+import com.diginamic.wemouv.repository.VehiculeRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -30,6 +35,13 @@ public class CovoiturageService {
     /** Dépôt d'accès aux données des participations/réservations. */
     private final ParticipationCovoiturageRepository participationCovoiturageRepository;
 
+    /** Dépôt d'accès aux données des vehicules */
+    private final VehiculeRepository vehiculeRepository;
+
+    /** Dépôt d'accès aux données des utilisateurs */
+    private final UtilisateurRepository utilisateurRepository;
+
+
     /**
      * Constructeur injectant les repositories requis.
      *
@@ -37,9 +49,14 @@ public class CovoiturageService {
      * @param participationCovoiturageRepository dépôt pour les participations
      */
     public CovoiturageService(CovoiturageRepository covoiturageRepository,
-                              ParticipationCovoiturageRepository participationCovoiturageRepository) {
+                              ParticipationCovoiturageRepository participationCovoiturageRepository,
+                              VehiculeRepository vehiculeRepository,
+                              UtilisateurRepository utilisateurRepository
+    ) {
         this.covoiturageRepository = covoiturageRepository;
         this.participationCovoiturageRepository = participationCovoiturageRepository;
+        this.vehiculeRepository = vehiculeRepository;
+        this.utilisateurRepository = utilisateurRepository;
     }
 
     /**
@@ -96,10 +113,48 @@ public class CovoiturageService {
     /**
      * Enregistre un nouveau covoiturage en base de données.
      *
-     * @param covoiturage l'entité à persister
+     * @param request l'entité à persister
      * @return le covoiturage sauvegardé avec son ID généré
      */
-    public Covoiturage create(Covoiturage covoiturage) {
+    public Covoiturage create(
+            CovoiturageRequest request
+    ) {
+
+        Vehicule vehicule =
+                vehiculeRepository
+                        .findById(request.getVehiculeId())
+                        .orElseThrow(() ->
+                                new RuntimeException("Vehicule introuvable"));
+
+        Utilisateur organisateur =
+                utilisateurRepository
+                        .findById(request.getOrganisateurId())
+                        .orElseThrow(() ->
+                                new RuntimeException("Organisateur introuvable"));
+
+        Utilisateur conducteur =
+                utilisateurRepository
+                        .findById(request.getConducteurId())
+                        .orElseThrow(() ->
+                                new RuntimeException("Conducteur introuvable"));
+
+        Covoiturage covoiturage =
+                new Covoiturage();
+
+        covoiturage.setAdresseDepart(request.getAdresseDepart());
+        covoiturage.setAdresseArrive(request.getAdresseArrive());
+        covoiturage.setDateDepart(request.getDateDepart());
+        covoiturage.setDateCreation(request.getDateCreation());
+        covoiturage.setDureeTrajet(request.getDureeTrajet());
+        covoiturage.setDistanceKm(request.getDistanceKm());
+        covoiturage.setNbPlacesInitial(request.getNbPlacesInitial());
+        covoiturage.setNbPlacesRestantes(request.getNbPlacesRestantes());
+        covoiturage.setStatut(request.getStatut());
+
+        covoiturage.setVehicule(vehicule);
+        covoiturage.setOrganisateur(organisateur);
+        covoiturage.setConducteur(conducteur);
+
         return covoiturageRepository.save(covoiturage);
     }
 
