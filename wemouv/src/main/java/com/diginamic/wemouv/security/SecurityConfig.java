@@ -2,6 +2,7 @@ package com.diginamic.wemouv.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -33,11 +34,17 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/admin/**")
+
+                        .requestMatchers(HttpMethod.GET, "/api/utilisateurs/**")
+                        .authenticated()
+
+                        .requestMatchers(HttpMethod.PUT, "/api/utilisateurs/**")
+                        .hasRole("USER")
+
+                        .requestMatchers(HttpMethod.DELETE, "/api/utilisateurs/**")
                         .hasRole("ADMIN")
 
                         .anyRequest().authenticated()
-
                 )
 
 

@@ -33,7 +33,9 @@ public class UtilisateurController {
      * Récupère les détails d'un collaborateur par son ID.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Utilisateur> getUtilisateurById(@PathVariable Long id) {
+    public ResponseEntity<Utilisateur> getUtilisateurById(
+            @PathVariable("id") Long id
+    ) {
         try {
             Utilisateur utilisateur = utilisateurService.findById(id);
             return ResponseEntity.ok(utilisateur);
@@ -46,9 +48,14 @@ public class UtilisateurController {
      * Met à jour le profil d'un collaborateur (adresse, nom, prenom, etc.).
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Utilisateur> updateUtilisateur(@PathVariable Long id, @RequestBody Utilisateur details) {
+    public ResponseEntity<Utilisateur> updateUtilisateur(
+            @PathVariable("id") Long id,
+            @RequestBody Utilisateur details
+    ) {
         try {
-            Utilisateur updated = utilisateurService.update(id, details);
+            Utilisateur updated =
+                    utilisateurService.update(id, details);
+
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -59,7 +66,9 @@ public class UtilisateurController {
      * Désactive un collaborateur.
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUtilisateur(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUtilisateur(
+            @PathVariable("id") Long id
+    ) {
         try {
             utilisateurService.softDelete(id);
             return ResponseEntity.noContent().build();
@@ -67,4 +76,6 @@ public class UtilisateurController {
             return ResponseEntity.notFound().build();
         }
     }
+
+
 }

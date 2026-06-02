@@ -35,32 +35,37 @@ public class JwtFilter extends OncePerRequestFilter {
             FilterChain chain
     ) throws ServletException, IOException {
 
-        String authHeader =
-                request.getHeader("Authorization");
+        System.out.println("URI = " + request.getRequestURI());
 
-        if (authHeader == null ||
-                !authHeader.startsWith("Bearer ")) {
+        String authHeader = request.getHeader("Authorization");
 
+        System.out.println("HEADER = " + authHeader);
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            System.out.println("Pas de bearer");
             chain.doFilter(request, response);
             return;
         }
 
-        String token =
-                authHeader.substring(7);
+        String token = authHeader.substring(7);
 
-        String email =
-                jwtService.extractUsername(token);
+        System.out.println("TOKEN = " + token);
+
+        String email = jwtService.extractUsername(token);
+
+        System.out.println("EMAIL = " + email);
 
         if (email != null &&
-                SecurityContextHolder
-                        .getContext()
-                        .getAuthentication() == null) {
+                SecurityContextHolder.getContext().getAuthentication() == null) {
 
             UserDetails user =
-                    userDetailsService
-                            .loadUserByUsername(email);
+                    userDetailsService.loadUserByUsername(email);
+
+            System.out.println("USER = " + user.getUsername());
 
             if (jwtService.isValid(token, user)) {
+
+                System.out.println("TOKEN VALIDE");
 
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(
@@ -77,6 +82,10 @@ public class JwtFilter extends OncePerRequestFilter {
                 SecurityContextHolder
                         .getContext()
                         .setAuthentication(auth);
+
+                System.out.println("AUTH OK");
+            } else {
+                System.out.println("TOKEN INVALIDE");
             }
         }
 

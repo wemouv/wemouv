@@ -34,7 +34,7 @@ public class VehiculePersoController {
      * Récupère les véhicules personnels associés à un propriétaire (collaborateur) spécifique.
      */
     @GetMapping("/proprietaire/{proprietaireId}")
-    public List<VehiculePerso> getVehiculesByProprietaire(@PathVariable Long proprietaireId) {
+    public List<VehiculePerso> getVehiculesByProprietaire(@PathVariable("proprietaireId") Long proprietaireId) {
         return vehiculePersoService.findByProprietaire(proprietaireId);
     }
 
@@ -51,7 +51,7 @@ public class VehiculePersoController {
      * Supprime un véhicule personnel du système.
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteVehiculePerso(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteVehiculePerso(@PathVariable("id") Long id) {
         try {
             vehiculePersoService.delete(id);
             return ResponseEntity.noContent().build();
