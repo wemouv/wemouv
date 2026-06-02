@@ -35,6 +35,7 @@ build/
 
 # Éléments spécifiques à IntelliJ IDEA (ta capture d'écran)
 .idea/
+
 *.iml
 
 # Dossier de compilation Java généré par Maven (très important à ignorer aussi !)

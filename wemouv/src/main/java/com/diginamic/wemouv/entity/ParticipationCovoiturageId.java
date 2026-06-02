@@ -1,6 +1,10 @@
 package com.diginamic.wemouv.entity;
 
 import jakarta.persistence.Embeddable;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
 
 /**
@@ -29,7 +33,11 @@ import java.io.Serializable;
  * </ul>
  * </p>
  */
+
 @Embeddable
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ParticipationCovoiturageId implements Serializable {
 
     /** Identifiant de l'utilisateur participant au covoiturage. */
@@ -37,6 +45,5 @@ public class ParticipationCovoiturageId implements Serializable {
 
     /** Identifiant du covoiturage auquel l'utilisateur participe. */
     private Long covoiturageId;
-
 
 }
