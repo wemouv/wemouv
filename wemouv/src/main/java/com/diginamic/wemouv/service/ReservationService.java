@@ -24,12 +24,24 @@ public class ReservationService {
                 .orElseThrow(() -> new RuntimeException("Réservation introuvable"));
     }
 
-    public Reservation save(Reservation reservation) {
+    public Reservation create(Reservation reservation) {
+        return reservationRepository.save(reservation);
+    }
+
+    public Reservation update(Long id,Reservation reservation) {
         return reservationRepository.save(reservation);
     }
 
     public void delete(Long id) {
         reservationRepository.deleteById(id);
+    }
+
+    public List<Reservation> findByUtilisateur(Long utilisateurId) {
+        return reservationRepository.findByUtilisateurId(utilisateurId);
+    }
+
+    public List<Reservation> findByVehicule(Long vehiculeId) {
+        return reservationRepository.findByVehiculeId(vehiculeId);
     }
 }
 

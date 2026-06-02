@@ -24,9 +24,14 @@ public class VehiculeDeServiceService {
                 .orElseThrow(() -> new RuntimeException("Véhicule de service introuvable"));
     }
 
-    public VehiculeDeService save(VehiculeDeService vehiculeDeService) {
+    public VehiculeDeService create(VehiculeDeService vehiculeDeService) {
         return vehiculeDeServiceRepository.save(vehiculeDeService);
     }
+
+    public VehiculeDeService update(Long id,VehiculeDeService vehiculeDeService) {
+        return vehiculeDeServiceRepository.save(vehiculeDeService);
+    }
+
 
     public void delete(Long id) {
         vehiculeDeServiceRepository.deleteById(id);

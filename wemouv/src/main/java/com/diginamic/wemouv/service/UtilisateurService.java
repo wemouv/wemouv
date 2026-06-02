@@ -5,6 +5,7 @@ import com.diginamic.wemouv.repository.UtilisateurRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UtilisateurService {
@@ -24,12 +25,27 @@ public class UtilisateurService {
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
     }
 
-    public Utilisateur save(Utilisateur utilisateur) {
+    public Utilisateur create(Utilisateur utilisateur) {
+        return utilisateurRepository.save(utilisateur);
+    }
+
+    public Utilisateur update(Long id,Utilisateur utilisateur) {
         return utilisateurRepository.save(utilisateur);
     }
 
     public void delete(Long id) {
         utilisateurRepository.deleteById(id);
+    }
+
+    /**
+     * compteActif doit être désactivé
+     * @param id
+     */
+    public void softDelete(Long id) {
+        utilisateurRepository.findById(id).ifPresent(u -> {
+            u.setCompteActif(false);
+            utilisateurRepository.save(u);
+        });
     }
 }
 
