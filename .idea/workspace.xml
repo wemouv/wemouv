@@ -6,15 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="24a2f450-3fc0-4661-81e3-45d947610ea6" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Covoiturage.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Covoiturage.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/ParticipationCovoiturageId.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/ParticipationCovoiturage.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Reservation.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Reservation.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Utilisateur.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Utilisateur.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Vehicule.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Vehicule.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/VehiculeDeService.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/VehiculeDeService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/VehiculePerso.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/VehiculePerso.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/service/CovoiturageService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wemouv/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/resources/application.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -135,8 +127,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "Spring Boot.WemouvApplication.executor": "Run",
     "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "entity__bases",
-    "git-widget-placeholder": "service__bases",
+    "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/W/workspace_cda/wemouv",
     "node.js.detected.package.eslint": "true",
