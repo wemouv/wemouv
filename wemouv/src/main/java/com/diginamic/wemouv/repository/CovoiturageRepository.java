@@ -103,6 +103,27 @@ public interface CovoiturageRepository extends JpaRepository<Covoiturage, Long> 
     List<Covoiturage> findByAdresseArriveContainingIgnoreCase(String adresseArrive);
     // Même principe que pour l'adresse de départ.
 
+    /**
+     * Recherche les covoiturages futurs créés par un organisateur (annonces en cours),
+     * triés par date de départ de la plus proche à la plus lointaine.
+     *
+     * @param organisateurId identifiant de l'organisateur (chauffeur)
+     * @param date date de référence (généralement la date et heure actuelles)
+     * @return la liste des covoiturages à venir créés par cet utilisateur
+     */
+    List<Covoiturage> findByOrganisateurIdAndDateDepartAfterOrderByDateDepartAsc(Long organisateurId, LocalDateTime date);
+
+    /**
+     * Recherche l'historique des covoiturages passés créés par un organisateur,
+     * triés par date de départ de la plus récente à la plus ancienne.
+     *
+     * @param organisateurId identifiant de l'organisateur (chauffeur)
+     * @param date date de référence (généralement la date et heure actuelles)
+     * @return la liste des anciens covoiturages créés par cet utilisateur
+     */
+    List<Covoiturage> findByOrganisateurIdAndDateDepartBeforeOrderByDateDepartDesc(Long organisateurId, LocalDateTime date);
+
+
 }
 
 
