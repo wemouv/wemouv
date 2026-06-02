@@ -60,13 +60,34 @@ public class CovoiturageController {
     }
 
 
+    /**
+     * Crée et enregistre un nouveau covoiturage dans le système.
+     *
+     * @param request DTO contenant les informations du trajet à créer
+     * @return un ResponseEntity contenant le covoiturage créé avec le statut HTTP 201 (Created)
+     */
     @PostMapping
     public ResponseEntity<?> createCovoiturage(
             @RequestBody CovoiturageRequest request
     ) {
 
-        System.out.println("REQUEST OK");
-        return ResponseEntity.ok(request);
+        try {
+
+            Covoiturage savedCovoiturage =
+                    covoiturageService.create(request);
+
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(savedCovoiturage);
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(e.getMessage());
+        }
     }
 
 
