@@ -5,23 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="24a2f450-3fc0-4661-81e3-45d947610ea6" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_02_06_2026_10_32_[Changes]/shelved.patch" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_02_06_2026_10_32_[Changes]1/shelved.patch" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_02_06_2026_10_32__Changes_.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/wemouv.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/repository/ParticipationCovoiturageRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/controller/CovoiturageController.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/controller/CovoiturageController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Covoiturage.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Covoiturage.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/ParticipationCovoiturageId.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/ParticipationCovoiturageId.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Utilisateur.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/entity/Utilisateur.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/repository/CovoiturageRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/repository/CovoiturageRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/service/CovoiturageService.java" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/src/main/java/com/diginamic/wemouv/service/CovoiturageService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wemouv/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/wemouv/.gitignore" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
