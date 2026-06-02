@@ -8,8 +8,70 @@
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ms-4">
                 <li class="nav-item"><a class="nav-link" th:href="@{/}">Accueil</a></li>
-                <li class="nav-item"><a class="nav-link" th:href="@{/covoiturage}">Covoiturage</a></li>
-                <li class="nav-item"><a class="nav-link" th:href="@{/vehicules}">Véhicule de service</a></li>
+                <!-- premier dropdown covoiturage -->
+                <li class="nav-item dropdown"><a class="nav-link dropdown-toggle"
+                                                 href="#"
+                                                 id="covoiturage"
+                                                 role="button"
+                                                 data-bs-toggle="dropdown"
+                                                 aria-expanded="false">
+
+                    Covoiturage
+                </a>
+
+                    <ul class="dropdown-menu"
+                        aria-labelledby="vehiculeDropdown">
+
+                        <li>
+                            <a class="dropdown-item"
+                               th:href="@{/reservations}">
+                                Mes réservations
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item"
+                               th:href="@{/vehicules/reserver}">
+                                Réserver un véhicule
+                            </a>
+                        </li>
+
+                    </ul>
+                </li>
+
+                <!-- second dropdown vehicule de service -->
+                <li class="nav-item dropdown">
+
+                    <a class="nav-link dropdown-toggle"
+                       href="#"
+                       id="vehiculeDropdown"
+                       role="button"
+                       data-bs-toggle="dropdown"
+                       aria-expanded="false">
+
+                        Véhicule de service
+                    </a>
+
+                    <ul class="dropdown-menu"
+                        aria-labelledby="vehiculeDropdown">
+
+                        <li>
+                            <a class="dropdown-item"
+                               th:href="@{/reservations}">
+                                Mes réservations
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item"
+                               th:href="@{/vehicules/reserver}">
+                                Réserver un véhicule
+                            </a>
+                        </li>
+
+                    </ul>
+
+                </li>
             </ul>
 
             <ul class="navbar-nav ms-auto">
