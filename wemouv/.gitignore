@@ -32,3 +32,14 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Éléments spécifiques à IntelliJ IDEA (ta capture d'écran)
+.idea/
+*.iml
+
+# Dossier de compilation Java généré par Maven (très important à ignorer aussi !)
+/target/
+
+# Fichiers temporaires ou logs du système
+*.log
+.DS_Store
