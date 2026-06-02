@@ -73,6 +73,10 @@ public class Covoiturage {
     @JoinColumn(name = "organisateur_id", nullable = false)
     private Utilisateur organisateur;
 
+    @ManyToOne
+    @JoinColumn(name = "conducteur_id", nullable = false)
+    private Utilisateur conducteur;
+
     // --------------------
     // Getters & Setters
     // --------------------
