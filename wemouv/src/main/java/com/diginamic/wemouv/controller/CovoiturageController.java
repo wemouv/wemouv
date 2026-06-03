@@ -4,13 +4,13 @@ import com.diginamic.wemouv.dto.CovoiturageRequest;
 import com.diginamic.wemouv.entity.Covoiturage;
 import com.diginamic.wemouv.entity.ParticipationCovoiturage;
 import com.diginamic.wemouv.enums.Statut;
+import com.diginamic.wemouv.service.AnnuleParticiaptionCovoiturage;
 import com.diginamic.wemouv.service.CovoiturageService;
 import com.diginamic.wemouv.service.RechercheCovoiturage;
 import com.diginamic.wemouv.service.ReserverCovoiturage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -28,18 +28,21 @@ public class CovoiturageController {
     private final CovoiturageService covoiturageService;
     private final RechercheCovoiturage rechercheCovoiturage;
     private final ReserverCovoiturage reserverCovoiturage;
+    private final AnnuleParticiaptionCovoiturage annuleParticiaptionCovoiturage;
 
     /**
-     * Constructeur avec injection unique du Service dédié.
+     * Constructeur avec injection des services dédiés.
      *
      * @param covoiturageService le service gérant la logique métier des covoiturages
      */
     public CovoiturageController(CovoiturageService covoiturageService,
                                  RechercheCovoiturage rechercheCovoiturage,
-                                 ReserverCovoiturage reserverCovoiturage) {
+                                 ReserverCovoiturage reserverCovoiturage,
+                                 AnnuleParticiaptionCovoiturage annuleParticiaptionCovoiturage) {
         this.covoiturageService = covoiturageService;
         this.rechercheCovoiturage = rechercheCovoiturage;
         this.reserverCovoiturage = reserverCovoiturage;
+        this.annuleParticiaptionCovoiturage = annuleParticiaptionCovoiturage;
     }
 
     /**
@@ -186,7 +189,7 @@ public class CovoiturageController {
             @PathVariable("covoiturageId") Long covoiturageId,
             @PathVariable("utilisateurId") Long utilisateurId) {
         try {
-            covoiturageService.annulerParticipation(covoiturageId, utilisateurId);
+            annuleParticiaptionCovoiturage.annuler(covoiturageId, utilisateurId);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
