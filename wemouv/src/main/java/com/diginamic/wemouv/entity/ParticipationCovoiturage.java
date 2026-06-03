@@ -43,6 +43,8 @@ public class ParticipationCovoiturage {
     public void setCovoiturage(Covoiturage covoiturage) {
         this.covoiturage = covoiturage;
     }
+
+
 }
 
 
