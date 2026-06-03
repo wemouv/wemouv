@@ -1,12 +1,10 @@
 package com.diginamic.wemouv.service;
 
-import com.diginamic.wemouv.entity.Covoiturage;
-import com.diginamic.wemouv.entity.ParticipationCovoiturage;
-import com.diginamic.wemouv.entity.Vehicule;
-import com.diginamic.wemouv.entity.VehiculeDeService;
+import com.diginamic.wemouv.entity.*;
 import com.diginamic.wemouv.enums.Disponibilite;
 import com.diginamic.wemouv.enums.Statut;
 import com.diginamic.wemouv.repository.CovoiturageRepository;
+import com.diginamic.wemouv.repository.ReservationRepository;
 import com.diginamic.wemouv.repository.VehiculeDeServiceRepository;
 import org.apache.catalina.Store;
 import org.springframework.stereotype.Service;
@@ -20,14 +18,17 @@ public class VehiculeDeServiceService {
 
     private final VehiculeDeServiceRepository vehiculeDeServiceRepository;
     private final CovoiturageRepository covoiturageRepository;
+    private final ReservationRepository reservationRepository;
     private final EmailService emailService;
 
     public VehiculeDeServiceService(VehiculeDeServiceRepository vehiculeDeServiceRepository,
                                     CovoiturageRepository covoiturageRepository,
+                                    ReservationRepository reservationRepository,
                                     EmailService emailService
     ) {
         this.vehiculeDeServiceRepository = vehiculeDeServiceRepository;
         this.covoiturageRepository =covoiturageRepository;
+        this.reservationRepository = reservationRepository;
         this.emailService = emailService;
     }
 
@@ -39,6 +40,66 @@ public class VehiculeDeServiceService {
         return vehiculeDeServiceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Véhicule de service introuvable"));
     }
+
+
+    /**
+     * Recherche les véhicules de service disponibles sur une plage de dates.
+     *
+     * <p>
+     * Un véhicule est considéré comme disponible lorsqu'il :
+     * <ul>
+     *     <li>est marqué comme DISPONIBLE</li>
+     *     <li>ne possède aucune réservation chevauchant la période demandée</li>
+     * </ul>
+     * </p>
+     *
+     * <p>
+     * Deux périodes sont considérées comme chevauchantes lorsque :
+     * <ul>
+     *     <li>dateDebutReservation &lt; dateFinDemandee</li>
+     *     <li>et dateFinReservation &gt; dateDebutDemandee</li>
+     * </ul>
+     * </p>
+     *
+     * @param dateDebut date et heure de début recherchées
+     * @param dateFin date et heure de fin recherchées
+     * @return la liste des véhicules de service disponibles
+     */
+    public List<VehiculeDeService> findAllAvailable(
+            LocalDateTime dateDebut,
+            LocalDateTime dateFin) {
+
+        return vehiculeDeServiceRepository.findAll()
+                .stream()
+
+                // véhicule disponible
+                .filter(v ->
+                        v.getStatut()
+                                == Disponibilite.DISPONIBLE)
+
+                // aucune réservation sur la période
+                .filter(v -> {
+
+                    List<Reservation> reservations =
+                            reservationRepository
+                                    .findByVehiculeId(
+                                            v.getId());
+
+                    return reservations.stream()
+
+                            // aucun chevauchement
+                            .noneMatch(r ->
+                                    r.getDateDebut()
+                                            .isBefore(dateFin)
+                                            &&
+                                            r.getDateFin()
+                                                    .isAfter(dateDebut)
+                            );
+                })
+
+                .toList();
+    }
+
 
     public VehiculeDeService create(
             VehiculeDeService vehicule
@@ -184,4 +245,7 @@ public class VehiculeDeServiceService {
     public void delete(Long id) {
         vehiculeDeServiceRepository.deleteById(id);
     }
+
+
+
 }

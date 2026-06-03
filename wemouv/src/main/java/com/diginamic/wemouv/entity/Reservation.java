@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  *
  * <p>
  * L'entité contient également un statut permettant de suivre l'état de la réservation
- * (ex : EN_COURS, VALIDEE, ANNULEE).
+ * (ex :  CONFIRME, ANNULE).
  * </p>
  *
  * <p>
@@ -52,7 +52,7 @@ public class Reservation {
     @JoinColumn(name = "utilisateur_id", nullable = false)
     private Utilisateur utilisateur;
 
-    /** Statut actuel de la réservation (ex : EN_COURS, TERMINEE, ANNULEE). */
+    /** Statut actuel de la réservation. */
     @Enumerated(EnumType.STRING)
     private Statut statut;
 
