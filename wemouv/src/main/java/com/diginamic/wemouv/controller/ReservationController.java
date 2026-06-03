@@ -1,10 +1,12 @@
 package com.diginamic.wemouv.controller;
 
+import com.diginamic.wemouv.dto.ReservationRequest;
 import com.diginamic.wemouv.entity.Reservation;
 import com.diginamic.wemouv.service.ListeReservationVehicule;
 import com.diginamic.wemouv.service.ReservationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -66,9 +68,18 @@ public class ReservationController {
      * Crée une nouvelle réservation de véhicule.
      */
     @PostMapping
-    public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation) {
-        Reservation savedReservation = reservationService.create(reservation);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedReservation);
+    public ResponseEntity<Reservation> createReservation(
+            @RequestBody ReservationRequest request,
+            Authentication authentication) {
+
+        Reservation savedReservation =
+                reservationService.create(
+                        request,
+                        authentication.getName());
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(savedReservation);
     }
 
     /**
