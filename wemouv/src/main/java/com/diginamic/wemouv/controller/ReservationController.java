@@ -3,6 +3,7 @@ package com.diginamic.wemouv.controller;
 import com.diginamic.wemouv.entity.Reservation;
 import com.diginamic.wemouv.service.ListeReservationVehicule;
 import com.diginamic.wemouv.service.ReservationService;
+import com.diginamic.wemouv.service.SupprimerReservationVehicule;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,11 +19,14 @@ public class ReservationController {
 
     private final ReservationService reservationService;
     private final ListeReservationVehicule listeReservationVehicule;
+    private final SupprimerReservationVehicule supprimerReservationVehicule;
 
     public ReservationController(ReservationService reservationService,
-                                 ListeReservationVehicule listeReservationVehicule) {
+                                 ListeReservationVehicule listeReservationVehicule,
+                                 SupprimerReservationVehicule supprimerReservationVehicule) {
         this.reservationService = reservationService;
         this.listeReservationVehicule = listeReservationVehicule;
+        this.supprimerReservationVehicule = supprimerReservationVehicule;
     }
 
     /**
@@ -37,7 +41,7 @@ public class ReservationController {
      * Récupère une réservation par son ID.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Reservation> getReservationById(@PathVariable Long id) {
+    public ResponseEntity<Reservation> getReservationById(@PathVariable("id") Long id) {
         try {
             Reservation reservation = reservationService.findById(id);
             return ResponseEntity.ok(reservation);
@@ -50,7 +54,7 @@ public class ReservationController {
      * Récupère toutes les réservations d'un utilisateur donné.
      */
     @GetMapping("/utilisateur/{utilisateurId}")
-    public List<Reservation> getReservationsByUtilisateur(@PathVariable Long utilisateurId) {
+    public List<Reservation> getReservationsByUtilisateur(@PathVariable("utilisateurId") Long utilisateurId) {
         return reservationService.findByUtilisateur(utilisateurId);
     }
 
@@ -75,7 +79,7 @@ public class ReservationController {
      * Met à jour une réservation existante.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Reservation> updateReservation(@PathVariable Long id, @RequestBody Reservation details) {
+    public ResponseEntity<Reservation> updateReservation(@PathVariable("id") Long id, @RequestBody Reservation details) {
         try {
             Reservation updated = reservationService.update(id, details);
             return ResponseEntity.ok(updated);
@@ -88,12 +92,12 @@ public class ReservationController {
      * Annule/Supprime une réservation.
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {
+    public ResponseEntity<?> deleteReservation(@PathVariable("id") Long id) {
         try {
-            reservationService.delete(id);
+            supprimerReservationVehicule.supprimer(id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 }
