@@ -1,9 +1,12 @@
 package com.diginamic.wemouv.controller;
 
+import com.diginamic.wemouv.entity.Utilisateur;
 import com.diginamic.wemouv.entity.VehiculePerso;
+import com.diginamic.wemouv.service.UtilisateurService;
 import com.diginamic.wemouv.service.VehiculePersoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,10 +19,12 @@ import java.util.List;
 public class VehiculePersoController {
 
     private final VehiculePersoService vehiculePersoService;
+    private final UtilisateurService utilisateurService;
 
     // Injection du Service uniquement
-    public VehiculePersoController(VehiculePersoService vehiculePersoService) {
+    public VehiculePersoController(VehiculePersoService vehiculePersoService, UtilisateurService utilisateurService) {
         this.vehiculePersoService = vehiculePersoService;
+        this.utilisateurService = utilisateurService;
     }
 
     /**
@@ -42,9 +47,32 @@ public class VehiculePersoController {
      * Enregistre un nouveau véhicule personnel.
      */
     @PostMapping
-    public ResponseEntity<VehiculePerso> createVehiculePerso(@RequestBody VehiculePerso vehiculePerso) {
+    public ResponseEntity<VehiculePerso> createVehiculePerso(@RequestBody VehiculePerso vehiculePerso, Authentication authentication) {
+
+        String email = authentication.getName();
+
+        Utilisateur utilisateur =
+                utilisateurService.findByEmail(email);
+
+        vehiculePerso.setProprietaire(utilisateur);
+
         VehiculePerso savedVehicule = vehiculePersoService.create(vehiculePerso);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(savedVehicule);
+    }
+
+    /**
+     * Met à jour un véhicule personnel.
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<VehiculePerso> updateVehiculePerso(
+            @RequestBody VehiculePerso vehiculePerso,
+            @PathVariable Long id) {
+
+        VehiculePerso savedVehicule =
+                vehiculePersoService.update(id, vehiculePerso);
+
+        return ResponseEntity.ok(savedVehicule);
     }
 
     /**
