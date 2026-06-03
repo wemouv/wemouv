@@ -103,6 +103,3 @@ public interface CovoiturageRepository extends JpaRepository<Covoiturage, Long> 
     List<Covoiturage> findByAdresseArriveContainingIgnoreCase(String adresseArrive);
     // Même principe que pour l'adresse de départ.
 }
-
-
-
