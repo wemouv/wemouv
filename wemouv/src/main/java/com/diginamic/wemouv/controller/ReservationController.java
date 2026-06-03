@@ -1,7 +1,9 @@
 package com.diginamic.wemouv.controller;
 
+import com.diginamic.wemouv.dto.ReservationModificationRequest;
 import com.diginamic.wemouv.entity.Reservation;
 import com.diginamic.wemouv.service.ListeReservationVehicule;
+import com.diginamic.wemouv.service.ModifierReservationVehicule;
 import com.diginamic.wemouv.service.ReservationService;
 import com.diginamic.wemouv.service.SupprimerReservationVehicule;
 import org.springframework.http.HttpStatus;
@@ -20,13 +22,16 @@ public class ReservationController {
     private final ReservationService reservationService;
     private final ListeReservationVehicule listeReservationVehicule;
     private final SupprimerReservationVehicule supprimerReservationVehicule;
+    private final ModifierReservationVehicule modifierReservationVehicule;
 
     public ReservationController(ReservationService reservationService,
                                  ListeReservationVehicule listeReservationVehicule,
-                                 SupprimerReservationVehicule supprimerReservationVehicule) {
+                                 SupprimerReservationVehicule supprimerReservationVehicule,
+                                 ModifierReservationVehicule modifierReservationVehicule) {
         this.reservationService = reservationService;
         this.listeReservationVehicule = listeReservationVehicule;
         this.supprimerReservationVehicule = supprimerReservationVehicule;
+        this.modifierReservationVehicule = modifierReservationVehicule;
     }
 
     /**
@@ -79,12 +84,15 @@ public class ReservationController {
      * Met à jour une réservation existante.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Reservation> updateReservation(@PathVariable("id") Long id, @RequestBody Reservation details) {
+    public ResponseEntity<?> updateReservation(@PathVariable("id") Long id,
+                                               @RequestBody ReservationModificationRequest request) {
         try {
-            Reservation updated = reservationService.update(id, details);
+            Reservation updated = modifierReservationVehicule.modifier(id, request);
             return ResponseEntity.ok(updated);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
