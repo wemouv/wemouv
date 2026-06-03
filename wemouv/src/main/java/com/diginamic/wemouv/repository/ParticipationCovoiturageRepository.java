@@ -16,4 +16,7 @@ public interface ParticipationCovoiturageRepository extends JpaRepository<Partic
 
     //  Récupère les participations d'un utilisateur pour les trajets PASSÉS (Historique)
     List<ParticipationCovoiturage> findByUtilisateurIdAndCovoiturageDateDepartBefore(Long utilisateurId, LocalDateTime date);
+
+    // supprime un covoiturage avec ses participations
+    void deleteByCovoiturageId(Long covoiturageId);
 }

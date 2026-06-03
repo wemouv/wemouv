@@ -124,6 +124,8 @@ public interface CovoiturageRepository extends JpaRepository<Covoiturage, Long> 
     List<Covoiturage> findByOrganisateurIdAndDateDepartBeforeOrderByDateDepartDesc(Long organisateurId, LocalDateTime date);
 
 
+
+
 }
 
 

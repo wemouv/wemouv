@@ -94,37 +94,77 @@ public class CovoiturageController {
 
 
     /**
-     * Met à jour les informations d'un covoiturage existant.
+     * Met à jour un covoiturage existant.
      *
-     * @param id l'identifiant unique du covoiturage à modifier
-     * @param covoiturageDetails l'objet contenant les nouvelles données à appliquer
-     * @return un {@link ResponseEntity} contenant l'entité mise à jour (HTTP 200),
-     * ou un statut HTTP 404 (Not Found) si le trajet n'existe pas
+     * @param id identifiant du covoiturage à modifier
+     * @param request DTO contenant les nouvelles informations du trajet
+     * @return le covoiturage mis à jour
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Covoiturage> updateCovoiturage(@PathVariable Long id, @RequestBody Covoiturage covoiturageDetails) {
+    public ResponseEntity<?> updateCovoiturage(
+            @PathVariable("id") Long id,
+            @RequestBody CovoiturageRequest request
+    ) {
+
         try {
-            Covoiturage updatedCovoiturage = covoiturageService.update(id, covoiturageDetails);
+
+            Covoiturage updatedCovoiturage =
+                    covoiturageService.update(id, request);
+
             return ResponseEntity.ok(updatedCovoiturage);
+
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+
+            e.printStackTrace();
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(e.getMessage());
         }
     }
 
     /**
      * Supprime définitivement un covoiturage du système.
      *
-     * @param id l'identifiant unique du covoiturage à supprimer
-     * @return un {@link ResponseEntity} vide avec le statut HTTP 24 (No Content) en cas de succès,
-     * ou un statut HTTP 404 (Not Found) en cas d'erreur
+     * @param id identifiant du covoiturage à supprimer
+     * @return HTTP 204 si suppression réussie,
+     *         HTTP 404 si covoiturage introuvable,
+     *         HTTP 500 en cas d'erreur serveur
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCovoiturage(@PathVariable Long id) {
+    public ResponseEntity<?> deleteCovoiturage(
+            @PathVariable("id") Long id
+    ) {
+
         try {
+
             covoiturageService.delete(id);
+
             return ResponseEntity.noContent().build();
+
+        } catch (RuntimeException e) {
+
+            e.printStackTrace();
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+
         } catch (Exception e) {
-            return ResponseEntity.notFound().build();
+
+            e.printStackTrace();
+
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(e.getMessage());
         }
     }
 
