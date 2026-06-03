@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Représente un covoiturage proposé par un utilisateur.
@@ -78,6 +80,12 @@ public class Covoiturage {
     @ManyToOne
     @JoinColumn(name = "conducteur_id", nullable = false)
     private Utilisateur conducteur;
+
+    @OneToMany(
+            mappedBy = "covoiturage",
+            cascade = CascadeType.REMOVE
+    )
+    private List<ParticipationCovoiturage> participations;
 
     // --------------------
     // Getters & Setters
@@ -162,4 +170,29 @@ public class Covoiturage {
     public void setConducteur(Utilisateur conducteur) {
         this.conducteur = conducteur;
     }
+
+    public List<ParticipationCovoiturage> getParticipations() {
+        return participations;
+    }
+
+    public void setParticipations(List<ParticipationCovoiturage> participations) {
+        this.participations = participations;
+    }
+
+    public void addParticipation(ParticipationCovoiturage participation) {
+        if (this.participations == null) {
+            this.participations = new ArrayList<>();
+        }
+        this.participations.add(participation);
+    }
+
+    public void removeParticipation(ParticipationCovoiturage participation) {
+        if (this.participations != null) {
+            this.participations.remove(participation);
+        }
+    }
+
+
+
+
 }

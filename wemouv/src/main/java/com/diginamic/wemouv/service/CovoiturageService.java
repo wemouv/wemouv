@@ -11,6 +11,7 @@ import com.diginamic.wemouv.repository.ParticipationCovoiturageRepository;
 import com.diginamic.wemouv.repository.UtilisateurRepository;
 import com.diginamic.wemouv.repository.VehiculeRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -41,6 +42,12 @@ public class CovoiturageService {
     /** Dépôt d'accès aux données des utilisateurs */
     private final UtilisateurRepository utilisateurRepository;
 
+    /** Dépôt d'accès aux données des participations */
+    private final ParticipationCovoiturageRepository participationRepository;
+
+    /** Permet d'envoyer des mail */
+    private final EmailService emailService;
+
 
     /**
      * Constructeur injectant les repositories requis.
@@ -51,12 +58,16 @@ public class CovoiturageService {
     public CovoiturageService(CovoiturageRepository covoiturageRepository,
                               ParticipationCovoiturageRepository participationCovoiturageRepository,
                               VehiculeRepository vehiculeRepository,
-                              UtilisateurRepository utilisateurRepository
+                              UtilisateurRepository utilisateurRepository,
+                              ParticipationCovoiturageRepository participationRepository,
+                              EmailService emailService
     ) {
         this.covoiturageRepository = covoiturageRepository;
         this.participationCovoiturageRepository = participationCovoiturageRepository;
         this.vehiculeRepository = vehiculeRepository;
         this.utilisateurRepository = utilisateurRepository;
+        this.participationRepository = participationRepository;
+        this.emailService = emailService;
     }
 
     /**
@@ -162,12 +173,90 @@ public class CovoiturageService {
      * Met à jour un covoiturage existant.
      *
      * @param id l'identifiant de la ressource à modifier
-     * @param covoiturage les nouvelles données à appliquer
+     * @param request les nouvelles données à appliquer DTO
      * @return l'entité mise à jour en base
      */
-    public Covoiturage update(Long id, Covoiturage covoiturage) {
-        // Idéalement, s'assurer que l'entité porte le bon ID avant le save
-        covoiturage.setId(id);
+    public Covoiturage update(
+            Long id,
+            CovoiturageRequest request
+    ) {
+
+        Covoiturage covoiturage =
+                covoiturageRepository
+                        .findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException("Covoiturage introuvable"));
+
+        covoiturage.setAdresseDepart(
+                request.getAdresseDepart());
+
+        covoiturage.setAdresseArrive(
+                request.getAdresseArrive());
+
+        covoiturage.setDateDepart(
+                request.getDateDepart());
+
+        covoiturage.setDateCreation(
+                request.getDateCreation());
+
+        covoiturage.setDureeTrajet(
+                request.getDureeTrajet());
+
+        covoiturage.setDistanceKm(
+                request.getDistanceKm());
+
+        covoiturage.setNbPlacesInitial(
+                request.getNbPlacesInitial());
+
+        covoiturage.setNbPlacesRestantes(
+                request.getNbPlacesRestantes());
+
+        covoiturage.setStatut(
+                request.getStatut());
+
+        Vehicule vehicule =
+                vehiculeRepository
+                        .findById(request.getVehiculeId())
+                        .orElseThrow(() ->
+                                new RuntimeException("Vehicule introuvable"));
+
+        Utilisateur organisateur =
+                utilisateurRepository
+                        .findById(request.getOrganisateurId())
+                        .orElseThrow(() ->
+                                new RuntimeException("Organisateur introuvable"));
+
+        Utilisateur conducteur =
+                utilisateurRepository
+                        .findById(request.getConducteurId())
+                        .orElseThrow(() ->
+                                new RuntimeException("Conducteur introuvable"));
+
+        covoiturage.setVehicule(vehicule);
+        covoiturage.setOrganisateur(organisateur);
+        covoiturage.setConducteur(conducteur);
+
+        emailService.sendMail(
+                covoiturage.getOrganisateur().getEmail(),
+                "Modification du covoiturage",
+                "Votre covoiturage a été modifié."
+        );
+
+        for (ParticipationCovoiturage participation : covoiturage.getParticipations()) {
+                    emailService.sendMail(
+                    participation.getUtilisateur().getEmail(),
+                    "Modification du covoiturage",
+                    "Votre covoiturage a été modifié."
+            );
+        }
+
+        emailService.sendMail(
+                covoiturage.getOrganisateur().getEmail(),
+                "Modification du covoiturage",
+                "Votre covoiturage a été modifié."
+        );
+
+
         return covoiturageRepository.save(covoiturage);
     }
 
@@ -176,8 +265,36 @@ public class CovoiturageService {
      *
      * @param id l'identifiant du covoiturage à détruire
      */
+    @Transactional
     public void delete(Long id) {
-        covoiturageRepository.deleteById(id);
+
+        Covoiturage covoiturage =
+                covoiturageRepository
+                        .findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Covoiturage introuvable"
+                                ));
+
+        participationRepository
+                .deleteByCovoiturageId(id);
+
+        covoiturageRepository
+                .delete(covoiturage);
+
+        for (ParticipationCovoiturage participation : covoiturage.getParticipations()) {
+            emailService.sendMail(
+                    participation.getUtilisateur().getEmail(),
+                    "Suppression du covoiturage",
+                    "Votre covoiturage a été supprimé."
+            );
+        }
+
+        emailService.sendMail(
+                covoiturage.getOrganisateur().getEmail(),
+                "Suppression du covoiturage",
+                "Votre covoiturage a été supprimé."
+        );
     }
 
     /**
