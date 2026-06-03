@@ -2,6 +2,8 @@ package com.diginamic.wemouv.entity;
 
 import com.diginamic.wemouv.enums.Statut;
 import jakarta.persistence.*;
+import lombok.ToString;
+
 import java.time.LocalDateTime;
 
 /**
@@ -72,6 +74,10 @@ public class Covoiturage {
     @ManyToOne
     @JoinColumn(name = "organisateur_id", nullable = false)
     private Utilisateur organisateur;
+
+    @ManyToOne
+    @JoinColumn(name = "conducteur_id", nullable = false)
+    private Utilisateur conducteur;
 
     // --------------------
     // Getters & Setters
@@ -148,4 +154,12 @@ public class Covoiturage {
 
     /** @param organisateur organisateur du covoiturage */
     public void setOrganisateur(Utilisateur organisateur) { this.organisateur = organisateur; }
+
+    public Utilisateur getConducteur() {
+        return conducteur;
+    }
+
+    public void setConducteur(Utilisateur conducteur) {
+        this.conducteur = conducteur;
+    }
 }

@@ -4,5 +4,6 @@ public enum Statut {
     EN_ATTENTE,
     CONFIRME,
     ANNULE,
-    TERMINE
+    TERMINE,
+    OUVERT
 }

@@ -13,19 +13,32 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UtilisateurRepository utilisateurRepository;
 
-    public UserDetailsServiceImpl(UtilisateurRepository utilisateurRepository) {
+    public UserDetailsServiceImpl(
+            UtilisateurRepository utilisateurRepository
+    ) {
         this.utilisateurRepository = utilisateurRepository;
     }
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé : " + email));
+    public UserDetails loadUserByUsername(String email)
+            throws UsernameNotFoundException {
+
+        Utilisateur utilisateur =
+                utilisateurRepository.findByEmail(email)
+                        .orElseThrow(() ->
+                                new UsernameNotFoundException(
+                                        "Utilisateur introuvable"
+                                )
+                        );
 
         return new User(
                 utilisateur.getEmail(),
                 utilisateur.getMotDePasse(),
-                List.of(new SimpleGrantedAuthority("ROLE_" + utilisateur.getRole().name()))
+                List.of(
+                        new SimpleGrantedAuthority(
+                                "ROLE_" + utilisateur.getRole().name()
+                        )
+                )
         );
     }
 }
