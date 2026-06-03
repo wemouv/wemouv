@@ -11,41 +11,60 @@ import java.util.List;
 
 /**
  * Contrôleur REST pour la gestion des véhicules de service de l'entreprise.
+ * <p>
+ * Ce contrôleur expose les points d'accès (endpoints) permettant aux utilisateurs
+ * et aux administrateurs de lister, filtrer, vérifier la disponibilité, créer,
+ * modifier ou supprimer des véhicules de la flotte professionnelle.
+ * </p>
  */
 @RestController
 @RequestMapping("/api/vehicules/service")
 public class VehiculeDeServiceController {
 
+    /** Le service métier contenant la logique liée aux véhicules de service. */
     private final VehiculeDeServiceService vehiculeDeServiceService;
 
-    // Injection du Service uniquement
+    /**
+     * Constructeur avec injection unique du Service dédié.
+     *
+     * @param vehiculeDeServiceService le service gérant la logique métier des véhicules
+     */
     public VehiculeDeServiceController(VehiculeDeServiceService vehiculeDeServiceService) {
         this.vehiculeDeServiceService = vehiculeDeServiceService;
     }
 
     /**
-     * Récupère l'ensemble de la flotte de véhicules de service de l'entreprise.
+     * TÂCHE 15 : Récupère l'ensemble de la flotte de véhicules de service de l'entreprise avec filtrage multicritère.
+     *
+     * Cet endpoint permet à l'administrateur de visualiser l'ensemble des détails du parc automobile.
+     * Il intègre un filtrage dynamique : si un paramètre est fourni (immatriculation ou marque),
+     * la liste est filtrée en conséquence. Sinon, l'intégralité du catalogue est retournée.
+     *
+     *
+     * @param immatriculation fragment de plaque d'immatriculation à rechercher (optionnel)
+     * @param marque          fragment de marque de véhicule à rechercher (optionnel)
+     * @return un {@link ResponseEntity} contenant la liste des véhicules correspondants (HTTP 200)
      */
     @GetMapping
-    public List<VehiculeDeService> getAllVehiculesDeService() {
-        return vehiculeDeServiceService.findAll();
-    }
+    public ResponseEntity<List<VehiculeDeService>> getAllVehiculesDeService(
+            @RequestParam(required = false) String immatriculation,
+            @RequestParam(required = false) String marque) {
 
+        List<VehiculeDeService> vehicules = vehiculeDeServiceService.getVehiculesFlotte(immatriculation, marque);
+        return ResponseEntity.ok(vehicules);
+    }
 
     /**
      * Récupère la liste des véhicules de service disponibles sur une période donnée.
-     *
-     * <p>Cette méthode expose un endpoint GET permettant de rechercher tous les
-     * {@link VehiculeDeService} disponibles entre une date de début et une date de fin.
-     * Les dates sont fournies en paramètres de requête.</p>
+     * <p>
+     * Un véhicule est considéré comme disponible s'il est actif et qu'aucune autre réservation
+     * professionnelle ne chevauche la plage horaire demandée.
+     * </p>
      *
      * @param dateDebut la date et l'heure de début de la période recherchée
      * @param dateFin   la date et l'heure de fin de la période recherchée
-     *
-     * @return une {@link ResponseEntity} contenant la liste des véhicules disponibles
-     *         si la recherche réussit, ou un statut HTTP 404 si aucun résultat n'est trouvé
-     *
-     * @throws RuntimeException si une erreur survient lors de la récupération des données
+     * @return une {@link ResponseEntity} contenant la liste des véhicules disponibles (HTTP 200),
+     * ou un statut HTTP 404 (Not Found) en cas d'erreur de traitement
      */
     @GetMapping("/available")
     public ResponseEntity<List<VehiculeDeService>> getAllVehiculesDeServiceAvailable(
@@ -53,20 +72,19 @@ public class VehiculeDeServiceController {
             @RequestParam LocalDateTime dateFin) {
 
         try {
-            List<VehiculeDeService> vehicules =
-                    vehiculeDeServiceService.findAllAvailable(
-                            dateDebut,
-                            dateFin);
-
+            List<VehiculeDeService> vehicules = vehiculeDeServiceService.findAllAvailable(dateDebut, dateFin);
             return ResponseEntity.ok(vehicules);
-
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
     /**
-     * Récupère un véhicule de service spécifique par son ID.
+     * Récupère un véhicule de service spécifique par son identifiant unique.
+     *
+     * @param id l'identifiant unique du véhicule recherché
+     * @return une {@link ResponseEntity} contenant le véhicule s'il est trouvé (HTTP 200),
+     * ou un statut HTTP 404 (Not Found) s'il n'existe pas
      */
     @GetMapping("/{id}")
     public ResponseEntity<VehiculeDeService> getVehiculeDeServiceById(@PathVariable Long id) {
@@ -80,6 +98,9 @@ public class VehiculeDeServiceController {
 
     /**
      * Enregistre un nouveau véhicule de service dans le parc automobile.
+     *
+     * @param vehiculeDeService l'entité contenant les spécifications de la nouvelle voiture
+     * @return une {@link ResponseEntity} contenant le véhicule créé avec le statut HTTP 201 (Created)
      */
     @PostMapping
     public ResponseEntity<VehiculeDeService> createVehiculeDeService(@RequestBody VehiculeDeService vehiculeDeService) {
@@ -88,7 +109,12 @@ public class VehiculeDeServiceController {
     }
 
     /**
-     * Met à jour les informations d'un véhicule de service.
+     * Met à jour l'ensemble des informations et caractéristiques d'un véhicule de service.
+     *
+     * @param id      l'identifiant du véhicule à modifier
+     * @param details les nouvelles caractéristiques techniques ou de statut à appliquer
+     * @return une {@link ResponseEntity} contenant l'entité mise à jour en base (HTTP 200),
+     * ou un statut HTTP 404 (Not Found) si l'ID n'existe pas
      */
     @PutMapping("/{id}")
     public ResponseEntity<VehiculeDeService> updateVehiculeDeService(@PathVariable Long id, @RequestBody VehiculeDeService details) {
@@ -101,7 +127,11 @@ public class VehiculeDeServiceController {
     }
 
     /**
-     * Supprime un véhicule de service du parc.
+     * Supprime définitivement un véhicule de service du parc automobile de l'entreprise.
+     *
+     * @param id l'identifiant du véhicule à supprimer
+     * @return une {@link ResponseEntity} vide avec le statut HTTP 204 (No Content) en cas de réussite,
+     * ou un statut HTTP 404 (Not Found) si le véhicule n'a pas pu être trouvé
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteVehiculeDeService(@PathVariable Long id) {
