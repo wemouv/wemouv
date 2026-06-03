@@ -3,11 +3,15 @@ package com.diginamic.wemouv.controller;
 import com.diginamic.wemouv.dto.CovoiturageRequest;
 import com.diginamic.wemouv.entity.Covoiturage;
 import com.diginamic.wemouv.entity.ParticipationCovoiturage;
+import com.diginamic.wemouv.enums.Statut;
 import com.diginamic.wemouv.service.CovoiturageService;
+import com.diginamic.wemouv.service.RechercheCovoiturage;
+import com.diginamic.wemouv.service.ReserverCovoiturage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -22,14 +26,20 @@ public class CovoiturageController {
 
     /** Le service métier contenant la logique des covoiturages. */
     private final CovoiturageService covoiturageService;
+    private final RechercheCovoiturage rechercheCovoiturage;
+    private final ReserverCovoiturage reserverCovoiturage;
 
     /**
      * Constructeur avec injection unique du Service dédié.
      *
      * @param covoiturageService le service gérant la logique métier des covoiturages
      */
-    public CovoiturageController(CovoiturageService covoiturageService) {
+    public CovoiturageController(CovoiturageService covoiturageService,
+                                 RechercheCovoiturage rechercheCovoiturage,
+                                 ReserverCovoiturage reserverCovoiturage) {
         this.covoiturageService = covoiturageService;
+        this.rechercheCovoiturage = rechercheCovoiturage;
+        this.reserverCovoiturage = reserverCovoiturage;
     }
 
     /**
@@ -43,6 +53,18 @@ public class CovoiturageController {
     }
 
     /**
+     * Recherche des covoiturages selon des critères optionnels.
+     */
+    @GetMapping("/recherche")
+    public List<Covoiturage> rechercherCovoiturages(
+            @RequestParam(value = "depart", required = false) String depart,
+            @RequestParam(value = "arrivee", required = false) String arrivee,
+            @RequestParam(value = "date", required = false) LocalDateTime date,
+            @RequestParam(value = "statut", required = false) Statut statut) {
+        return rechercheCovoiturage.rechercher(depart, arrivee, date, statut);
+    }
+
+    /**
      * Récupère un covoiturage spécifique par son identifiant unique.
      *
      * @param id l'identifiant unique du covoiturage recherché
@@ -50,7 +72,7 @@ public class CovoiturageController {
      * ou une réponse vide avec le statut HTTP 404 (Not Found)
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Covoiturage> getCovoiturageById(@PathVariable Long id) {
+    public ResponseEntity<Covoiturage> getCovoiturageById(@PathVariable("id") Long id) {
         try {
             Covoiturage covoiturage = covoiturageService.findById(id);
             return ResponseEntity.ok(covoiturage);
@@ -179,16 +201,14 @@ public class CovoiturageController {
      */
     @PostMapping("/{covoiturageId}/participer/{utilisateurId}")
     public ResponseEntity<?> participer(
-            @PathVariable Long covoiturageId,
-            @PathVariable Long utilisateurId) {
+            @PathVariable("covoiturageId") Long covoiturageId,
+            @PathVariable("utilisateurId") Long utilisateurId) {
         try {
-            ParticipationCovoiturage participation = covoiturageService.participer(covoiturageId, utilisateurId);
+            ParticipationCovoiturage participation = reserverCovoiturage.reserver(covoiturageId, utilisateurId);
             return ResponseEntity.status(HttpStatus.CREATED).body(participation);
         } catch (IllegalStateException e) {
-            // Plus de places disponibles (Erreur 400)
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (RuntimeException e) {
-            // Covoiturage introuvable (Erreur 404)
             return ResponseEntity.notFound().build();
         }
     }
@@ -203,13 +223,12 @@ public class CovoiturageController {
      */
     @DeleteMapping("/{covoiturageId}/participer/{utilisateurId}")
     public ResponseEntity<?> annulerParticipation(
-            @PathVariable Long covoiturageId,
-            @PathVariable Long utilisateurId) {
+            @PathVariable("covoiturageId") Long covoiturageId,
+            @PathVariable("utilisateurId") Long utilisateurId) {
         try {
             covoiturageService.annulerParticipation(covoiturageId, utilisateurId);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
-            // Participation ou covoiturage introuvable
             return ResponseEntity.notFound().build();
         }
     }

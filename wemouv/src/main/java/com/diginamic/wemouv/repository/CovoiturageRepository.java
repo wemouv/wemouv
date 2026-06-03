@@ -127,6 +127,3 @@ public interface CovoiturageRepository extends JpaRepository<Covoiturage, Long> 
 
 
 }
-
-
-
