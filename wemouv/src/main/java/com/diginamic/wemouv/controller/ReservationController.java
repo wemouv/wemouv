@@ -2,6 +2,7 @@ package com.diginamic.wemouv.controller;
 
 import com.diginamic.wemouv.dto.ReservationRequest;
 import com.diginamic.wemouv.entity.Reservation;
+import com.diginamic.wemouv.service.ListeReservationVehicule;
 import com.diginamic.wemouv.service.ReservationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +19,12 @@ import java.util.List;
 public class ReservationController {
 
     private final ReservationService reservationService;
+    private final ListeReservationVehicule listeReservationVehicule;
 
-    // Injection du Service uniquement
-    public ReservationController(ReservationService reservationService) {
+    public ReservationController(ReservationService reservationService,
+                                 ListeReservationVehicule listeReservationVehicule) {
         this.reservationService = reservationService;
+        this.listeReservationVehicule = listeReservationVehicule;
     }
 
     /**
@@ -29,7 +32,7 @@ public class ReservationController {
      */
     @GetMapping
     public List<Reservation> getAllReservations() {
-        return reservationService.findAll();
+        return listeReservationVehicule.lister();
     }
 
     /**
@@ -57,8 +60,8 @@ public class ReservationController {
      * Récupère toutes les réservations liées à un véhicule.
      */
     @GetMapping("/vehicule/{vehiculeId}")
-    public List<Reservation> getReservationsByVehicule(@PathVariable Long vehiculeId) {
-        return reservationService.findByVehicule(vehiculeId);
+    public List<Reservation> getReservationsByVehicule(@PathVariable("vehiculeId") Long vehiculeId) {
+        return listeReservationVehicule.listerParVehicule(vehiculeId);
     }
 
     /**
