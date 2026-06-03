@@ -25,6 +25,7 @@ public class VehiculePersoService {
     }
 
     public VehiculePerso create(VehiculePerso vehiculePerso) {
+
         return vehiculePersoRepository.save(vehiculePerso);
     }
 
@@ -38,7 +39,7 @@ public class VehiculePersoService {
         existing.setPhotoUrl(vehiculePerso.getPhotoUrl());
         existing.setCo2Km(vehiculePerso.getCo2Km());
         existing.setCategorie(vehiculePerso.getCategorie());
-        existing.setProprietaire(vehiculePerso.getProprietaire());
+        if(vehiculePerso.getProprietaire()!= null){existing.setProprietaire(vehiculePerso.getProprietaire());};
 
         return vehiculePersoRepository.save(existing);
     }

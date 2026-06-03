@@ -25,6 +25,12 @@ public class UtilisateurService {
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
     }
 
+    public Utilisateur findByEmail(String email) {
+        return utilisateurRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+    }
+
+
     public Utilisateur create(Utilisateur utilisateur) {
         return utilisateurRepository.save(utilisateur);
     }
@@ -47,5 +53,7 @@ public class UtilisateurService {
             utilisateurRepository.save(u);
         });
     }
+
+
 }
 
