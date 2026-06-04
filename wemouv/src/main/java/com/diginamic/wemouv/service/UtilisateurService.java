@@ -25,6 +25,12 @@ public class UtilisateurService {
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
     }
 
+    public Utilisateur findByEmail(String email) {
+        return utilisateurRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+    }
+
+
     public Utilisateur create(Utilisateur utilisateur) {
         return utilisateurRepository.save(utilisateur);
     }
@@ -46,6 +52,18 @@ public class UtilisateurService {
             u.setCompteActif(false);
             utilisateurRepository.save(u);
         });
+    }
+
+    /**
+     * compteActif doit être activé
+     * @param id
+     */
+    public void reactivate(Long id) {
+        utilisateurRepository.findById(id).ifPresent(u -> {
+            u.setCompteActif(true);
+            utilisateurRepository.save(u);
+        });
+
     }
 }
 

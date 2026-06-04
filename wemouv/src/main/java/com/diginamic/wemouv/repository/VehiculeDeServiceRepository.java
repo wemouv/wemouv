@@ -1,6 +1,7 @@
 package com.diginamic.wemouv.repository;
 
 import com.diginamic.wemouv.entity.VehiculeDeService;
+import com.diginamic.wemouv.enums.Marque;
 import com.diginamic.wemouv.enums.Statut;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -36,4 +37,15 @@ public interface VehiculeDeServiceRepository extends JpaRepository<VehiculeDeSer
      * @return la liste des véhicules de service correspondants
      */
     List<VehiculeDeService> findByStatut(Statut statut);
+
+    /**
+     * TÂCHE 15 : Recherche les véhicules par immatriculation (recherche partielle et insensible à la casse).
+     */
+    List<VehiculeDeService> findByImmatriculationContainingIgnoreCase(String immatriculation);
+
+    /**
+     * TÂCHE 15 : Recherche les véhicules par marque (recherche partielle et insensible à la casse).
+     */
+    List<VehiculeDeService> findByMarque(Marque marque);
+
 }

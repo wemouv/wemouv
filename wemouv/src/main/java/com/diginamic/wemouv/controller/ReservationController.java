@@ -1,11 +1,13 @@
 package com.diginamic.wemouv.controller;
 
+import com.diginamic.wemouv.dto.ReservationModificationRequest;
 import com.diginamic.wemouv.entity.Reservation;
 import com.diginamic.wemouv.service.ListeReservationVehicule;
 import com.diginamic.wemouv.service.ReservationService;
 import com.diginamic.wemouv.service.SupprimerReservationVehicule;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -70,9 +72,18 @@ public class ReservationController {
      * Crée une nouvelle réservation de véhicule.
      */
     @PostMapping
-    public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation) {
-        Reservation savedReservation = reservationService.create(reservation);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedReservation);
+    public ResponseEntity<Reservation> createReservation(
+            @RequestBody ReservationRequest request,
+            Authentication authentication) {
+
+        Reservation savedReservation =
+                reservationService.create(
+                        request,
+                        authentication.getName());
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(savedReservation);
     }
 
     /**
@@ -81,10 +92,12 @@ public class ReservationController {
     @PutMapping("/{id}")
     public ResponseEntity<Reservation> updateReservation(@PathVariable("id") Long id, @RequestBody Reservation details) {
         try {
-            Reservation updated = reservationService.update(id, details);
+            Reservation updated = modifierReservationVehicule.modifier(id, request);
             return ResponseEntity.ok(updated);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 

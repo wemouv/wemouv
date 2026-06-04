@@ -1,6 +1,7 @@
 package com.diginamic.wemouv.repository;
 
 import com.diginamic.wemouv.entity.Covoiturage;
+import com.diginamic.wemouv.entity.Vehicule;
 import com.diginamic.wemouv.enums.Statut;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -122,6 +123,12 @@ public interface CovoiturageRepository extends JpaRepository<Covoiturage, Long> 
      * @return la liste des anciens covoiturages créés par cet utilisateur
      */
     List<Covoiturage> findByOrganisateurIdAndDateDepartBeforeOrderByDateDepartDesc(Long organisateurId, LocalDateTime date);
+
+    List<Covoiturage>
+    findByVehiculeAndDateDepartAfter(
+            Vehicule vehicule,
+            LocalDateTime date
+    );
 
 
 }
