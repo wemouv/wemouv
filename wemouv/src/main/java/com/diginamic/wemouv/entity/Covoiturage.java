@@ -2,89 +2,80 @@ package com.diginamic.wemouv.entity;
 
 import com.diginamic.wemouv.enums.Statut;
 import jakarta.persistence.*;
-import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Représente un covoiturage proposé par un utilisateur.
+ * Entité JPA représentant un covoiturage proposé au sein de l'entreprise.
  * <p>
- * Cette entité contient toutes les informations nécessaires pour décrire un trajet :
- * adresses, dates, véhicule utilisé, organisateur, nombre de places, distance,
- * durée estimée et statut du covoiturage.
- * </p>
- *
- * <p>
- * Un covoiturage est lié :
- * <ul>
- *     <li>à un {@link Vehicule} utilisé pour le trajet</li>
- *     <li>à un {@link Utilisateur} organisateur</li>
- * </ul>
+ * Cette classe est mappée directement sur la table {@code covoiturage} en base de données.
+ * Elle contient l'intégralité des informations d'un trajet (adresses, dates, places...)
+ * ainsi que ses relations vers le véhicule utilisé, les collaborateurs (organisateur/conducteur)
+ * et les passagers inscrits (participations).
  * </p>
  */
 @Entity
 @Table(name = "covoiturage")
 public class Covoiturage {
 
-    /** Identifiant unique du covoiturage. */
+    /** Identifiant unique du covoiturage généré automatiquement par la BDD. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Adresse de départ du trajet. */
+    /** Adresse postale complète du point de départ. */
     @Column(nullable = false, length = 255)
     private String adresseDepart;
 
-    /** Adresse d'arrivée du trajet. */
+    /** Adresse postale complète du point d'arrivée. */
     @Column(nullable = false, length = 255)
     private String adresseArrive;
 
-    /** Date et heure prévues du départ. */
+    /** Date et heure de départ effectif prévues pour le trajet. */
     @Column(nullable = false)
     private LocalDateTime dateDepart;
 
-    /** Date et heure de création du covoiturage. */
+    /** Date et heure à laquelle l'annonce a été publiée dans le système. */
     @Column(nullable = false)
     private LocalDateTime dateCreation;
 
-    /** Durée estimée du trajet en heures. */
+    /** Durée estimée du trajet (en heures décimales). */
     private Double dureeTrajet;
 
-    /** Distance estimée du trajet en kilomètres. */
+    /** Distance totale estimée du trajet (en kilomètres). */
     private Double distanceKm;
 
-    /** Nombre total de places disponibles au départ. */
+    /** Nombre de places initialement proposées par le conducteur. */
     @Column(nullable = false)
     private int nbPlacesInitial;
 
-    /** Nombre de places restantes encore disponibles. */
+    /** Nombre de places encore disponibles pour de nouveaux passagers. */
     @Column(nullable = false)
     private int nbPlacesRestantes;
 
-    /** Statut actuel du covoiturage (ex : OUVERT, COMPLET, ANNULE). */
+    /** État d'avancement du trajet (EN_ATTENTE, CONFIRME, TERMINE, ANNULE). */
     @Enumerated(EnumType.STRING)
     private Statut statut;
 
-    /** Véhicule utilisé pour effectuer le covoiturage. */
+    /** Le véhicule (personnel ou de service) affecté à ce trajet. */
     @ManyToOne
     @JoinColumn(name = "vehicule_id", nullable = false)
     private Vehicule vehicule;
 
-    /** Utilisateur organisateur du covoiturage. */
+    /** Le collaborateur qui a créé et publié cette annonce. */
     @ManyToOne
     @JoinColumn(name = "organisateur_id", nullable = false)
     private Utilisateur organisateur;
 
+    /** Le collaborateur qui prendra le volant (souvent l'organisateur lui-même). */
     @ManyToOne
     @JoinColumn(name = "conducteur_id", nullable = false)
     private Utilisateur conducteur;
 
-    @OneToMany(
-            mappedBy = "covoiturage",
-            cascade = CascadeType.REMOVE
-    )
+    /** Liste des inscriptions (passagers) liées à ce trajet. */
+    @OneToMany(mappedBy = "covoiturage", cascade = CascadeType.REMOVE)
     private List<ParticipationCovoiturage> participations;
 
     // --------------------
@@ -115,10 +106,10 @@ public class Covoiturage {
     /** @param dateDepart date et heure de départ */
     public void setDateDepart(LocalDateTime dateDepart) { this.dateDepart = dateDepart; }
 
-    /** @return la date de création */
+    /** @return la date de création de l'annonce */
     public LocalDateTime getDateCreation() { return dateCreation; }
 
-    /** @param dateCreation date de création */
+    /** @param dateCreation date de création de l'annonce */
     public void setDateCreation(LocalDateTime dateCreation) { this.dateCreation = dateCreation; }
 
     /** @return la durée estimée du trajet */
@@ -163,22 +154,26 @@ public class Covoiturage {
     /** @param organisateur organisateur du covoiturage */
     public void setOrganisateur(Utilisateur organisateur) { this.organisateur = organisateur; }
 
-    public Utilisateur getConducteur() {
-        return conducteur;
-    }
+    /** @return le conducteur affecté au trajet */
+    public Utilisateur getConducteur() { return conducteur; }
 
-    public void setConducteur(Utilisateur conducteur) {
-        this.conducteur = conducteur;
-    }
+    /** @param conducteur le conducteur affecté au trajet */
+    public void setConducteur(Utilisateur conducteur) { this.conducteur = conducteur; }
 
-    public List<ParticipationCovoiturage> getParticipations() {
-        return participations;
-    }
+    /** @return la liste des participations (passagers inscrits) */
+    public List<ParticipationCovoiturage> getParticipations() { return participations; }
 
-    public void setParticipations(List<ParticipationCovoiturage> participations) {
-        this.participations = participations;
-    }
+    /** @param participations la liste des participations */
+    public void setParticipations(List<ParticipationCovoiturage> participations) { this.participations = participations; }
 
+    // -------------------------
+    // Helper Methods (Utilitaires)
+    // -------------------------
+
+    /**
+     * Ajoute un passager au covoiturage de manière sécurisée en mémoire.
+     * * @param participation l'entité représentant l'inscription du passager
+     */
     public void addParticipation(ParticipationCovoiturage participation) {
         if (this.participations == null) {
             this.participations = new ArrayList<>();
@@ -186,13 +181,13 @@ public class Covoiturage {
         this.participations.add(participation);
     }
 
+    /**
+     * Retire un passager du covoiturage en mémoire.
+     * * @param participation l'entité représentant l'inscription à retirer
+     */
     public void removeParticipation(ParticipationCovoiturage participation) {
         if (this.participations != null) {
             this.participations.remove(participation);
         }
     }
-
-
-
-
 }

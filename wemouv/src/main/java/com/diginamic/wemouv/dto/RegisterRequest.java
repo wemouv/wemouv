@@ -1,15 +1,34 @@
 package com.diginamic.wemouv.dto;
 
-
-
+/**
+ * Objet de Transfert de Données (DTO) pour la requête d'inscription.
+ * <p>
+ * Ce DTO est utilisé par le contrôleur d'authentification pour réceptionner
+ * l'ensemble des données envoyées par le Front-end lors de la création
+ * d'un nouveau profil collaborateur.
+ * </p>
+ */
 public class RegisterRequest {
 
+    /** Le nom de famille du collaborateur. */
     private String nom;
+
+    /** Le prénom du collaborateur. */
     private String prenom;
+
+    /** L'adresse e-mail professionnelle (qui servira d'identifiant de connexion). */
     private String email;
+
+    /** Le mot de passe en clair saisi lors de l'inscription (sera haché par le Backend). */
     private String password;
+
+    /** Le rôle du collaborateur (ex: "ADMIN", "USER", "CHAUFFEUR") transmis sous forme de texte. */
     private String role;
+
+    /** L'adresse postale personnelle ou professionnelle du collaborateur. */
     private String adresse;
+
+    /** Indique si le compte est immédiatement utilisable après sa création. */
     private Boolean compteActif;
 
     public String getNom() {
@@ -64,7 +83,7 @@ public class RegisterRequest {
         return compteActif;
     }
 
-    public void setCompteActif(Boolean compte_actif) {
-        this.compteActif = compte_actif;
+    public void setCompteActif(Boolean compteActif) {
+        this.compteActif = compteActif;
     }
 }

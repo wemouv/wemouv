@@ -38,6 +38,10 @@ public class VehiculeDeServiceService {
 
     /**
      * Constructeur injectant l'ensemble des dépendances nécessaires.
+     * * @param vehiculeDeServiceRepository dépôt des véhicules
+     * @param covoiturageRepository dépôt des covoiturages
+     * @param reservationRepository dépôt des réservations
+     * @param emailService service pour l'envoi de mails
      */
     public VehiculeDeServiceService(VehiculeDeServiceRepository vehiculeDeServiceRepository,
                                     CovoiturageRepository covoiturageRepository,
@@ -87,7 +91,7 @@ public class VehiculeDeServiceService {
         // 2. Filtrage par marque (Conversion du texte vers l'Enum)
         if (marque != null && !marque.trim().isEmpty()) {
             try {
-                // C'est beaucoup plus propre comme ça !
+                // Conversion propre vers l'énumération
                 Marque marqueEnum = Marque.valueOf(marque.trim().toUpperCase());
                 return vehiculeDeServiceRepository.findByMarque(marqueEnum);
             } catch (IllegalArgumentException e) {
@@ -152,7 +156,7 @@ public class VehiculeDeServiceService {
     @Transactional
     public VehiculeDeService update(Long id, VehiculeDeService details) {
         VehiculeDeService vehicule = vehiculeDeServiceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Vehicule introuvable"));
+                .orElseThrow(() -> new RuntimeException("Véhicule de service introuvable pour mise à jour"));
 
         Disponibilite ancienneDispo = vehicule.getStatut();
         Disponibilite nouvelleDispo = details.getStatut();
@@ -221,8 +225,12 @@ public class VehiculeDeServiceService {
      * Supprime définitivement un véhicule de service du catalogue du parc automobile.
      *
      * @param id l'identifiant du véhicule à supprimer
+     * @throws RuntimeException si le véhicule est introuvable
      */
     public void delete(Long id) {
+        if (!vehiculeDeServiceRepository.existsById(id)) {
+            throw new RuntimeException("Véhicule de service introuvable pour suppression");
+        }
         vehiculeDeServiceRepository.deleteById(id);
     }
 }

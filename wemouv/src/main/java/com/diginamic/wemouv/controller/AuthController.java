@@ -7,26 +7,50 @@ import com.diginamic.wemouv.entity.Utilisateur;
 import com.diginamic.wemouv.enums.Role;
 import com.diginamic.wemouv.repository.UtilisateurRepository;
 import com.diginamic.wemouv.security.JwtService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Contrôleur REST gérant la sécurité, l'authentification et l'inscription.
+ * <p>
+ * Ce contrôleur est le point d'entrée public (non sécurisé par un token) permettant
+ * aux utilisateurs de se connecter (pour obtenir un token JWT) ou de créer un compte.
+ * </p>
+ */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
+    /** Gestionnaire d'authentification de Spring Security. */
     private final AuthenticationManager authManager;
+
+    /** Service permettant de charger les détails d'un utilisateur depuis la BDD. */
     private final UserDetailsService userDetailsService;
+
+    /** Service utilitaire pour la génération et validation des tokens JWT. */
     private final JwtService jwtService;
+
+    /** Outil de hachage pour sécuriser les mots de passe. */
     private final PasswordEncoder passwordEncoder;
+
+    /** Dépôt pour vérifier et sauvegarder les utilisateurs lors de l'inscription. */
     private final UtilisateurRepository utilisateurRepository;
 
-
+    /**
+     * Constructeur injectant les services et composants de sécurité nécessaires.
+     *
+     * @param authManager gestionnaire d'authentification
+     * @param userDetailsService service de lecture des utilisateurs
+     * @param jwtService service de gestion des tokens
+     * @param passwordEncoder encodeur de mots de passe (ex: BCrypt)
+     * @param utilisateurRepository dépôt des utilisateurs
+     */
     public AuthController(
             AuthenticationManager authManager,
             UserDetailsService userDetailsService,
@@ -41,40 +65,52 @@ public class AuthController {
         this.utilisateurRepository = utilisateurRepository;
     }
 
+    /**
+     * Authentifie un utilisateur et génère son Token JWT.
+     *
+     * @param request DTO contenant l'email et le mot de passe en clair
+     * @return un {@link ResponseEntity} contenant le Token JWT (HTTP 200),
+     * ou un statut HTTP 401 (Unauthorized) si les identifiants sont faux
+     */
     @PostMapping("/login")
-    public AuthResponse login(
-            @RequestBody LoginRequest request
-    ) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        try {
+            // Tentative d'authentification via Spring Security
+            authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
 
-        authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
+            // Récupération de l'utilisateur certifié et génération du token
+            UserDetails user = userDetailsService.loadUserByUsername(request.getEmail());
+            String token = jwtService.generateToken(user);
 
-        UserDetails user =
-                userDetailsService.loadUserByUsername(
-                        request.getEmail()
-                );
+            return ResponseEntity.ok(new AuthResponse(token));
 
-        String token =
-                jwtService.generateToken(user);
-
-        return new AuthResponse(token);
+        } catch (AuthenticationException e) {
+            // Si le mot de passe ou l'email est faux, on renvoie une erreur 401 propre
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("Email ou mot de passe incorrect");
+        }
     }
 
+    /**
+     * Inscrit un nouvel utilisateur dans le système de l'entreprise.
+     *
+     * @param request DTO contenant les informations du profil à créer
+     * @return un {@link ResponseEntity} confirmant la création (HTTP 201),
+     * ou un statut HTTP 400 (Bad Request) si l'email existe déjà ou si le rôle est invalide
+     */
     @PostMapping("/register")
-    public ResponseEntity<?> register(
-            @RequestBody RegisterRequest request
-    ) {
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
 
-        if (utilisateurRepository
-                .findByEmail(request.getEmail())
-                .isPresent()) {
-
+        // Vérification de l'unicité de l'email
+        if (utilisateurRepository.findByEmail(request.getEmail()).isPresent()) {
             return ResponseEntity
-                    .badRequest()
+                    .status(HttpStatus.BAD_REQUEST)
                     .body("Email déjà utilisé");
         }
 
@@ -82,36 +118,30 @@ public class AuthController {
 
         user.setCompteActif(request.getCompteActif());
         user.setAdresse(request.getAdresse());
-
         user.setEmail(request.getEmail());
         user.setPrenom(request.getPrenom());
         user.setNom(request.getNom());
 
+        // Hachage du mot de passe avant la sauvegarde en base
         user.setMotDePasse(
-                passwordEncoder.encode(
-                        request.getPassword()
-                )
+                passwordEncoder.encode(request.getPassword())
         );
 
+        // Assignation sécurisée du rôle (Administrateur, Employé...)
         try {
-
             user.setRole(
-                    Role.valueOf(
-                            request.getRole().toUpperCase()
-                    )
+                    Role.valueOf(request.getRole().toUpperCase())
             );
-
         } catch (IllegalArgumentException e) {
-
             return ResponseEntity
-                    .badRequest()
-                    .body("Role invalide");
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("Rôle invalide");
         }
 
         utilisateurRepository.save(user);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body("Utilisateur créé");
+                .body("Utilisateur créé avec succès");
     }
 }

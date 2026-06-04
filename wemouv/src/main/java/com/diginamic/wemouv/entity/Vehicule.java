@@ -6,31 +6,21 @@ import com.diginamic.wemouv.enums.Motorisation;
 import jakarta.persistence.*;
 
 /**
- * Représente un véhicule utilisé dans l'application WeMouv.
+ * Entité JPA racine représentant un véhicule au sens large dans l'application WeMouv.
  * <p>
- * Cette classe constitue la classe mère de la hiérarchie des véhicules
- * (ex : véhicules personnels, véhicules de service), grâce à l'héritage JPA
- * avec la stratégie {@link InheritanceType#JOINED}.
+ * Cette classe constitue la base de la hiérarchie des véhicules (véhicules personnels
+ * et véhicules de service), en s'appuyant sur l'héritage JPA avec la stratégie
+ * {@link InheritanceType#JOINED}.
+ * En base de données, cela crée une table mère {@code vehicule} contenant toutes
+ * les propriétés partagées.
  * </p>
- *
  * <p>
  * Un véhicule possède des caractéristiques essentielles telles que :
  * <ul>
- *     <li>une immatriculation</li>
- *     <li>une marque ({@link Marque})</li>
- *     <li>une motorisation ({@link Motorisation})</li>
- *     <li>un nombre de places</li>
- *     <li>une catégorie ({@link Categorie})</li>
- *     <li>un taux d'émission de CO₂ par kilomètre</li>
- * </ul>
- * </p>
- *
- * <p>
- * Cette entité peut être utilisée dans différents contextes :
- * <ul>
- *     <li>réservations de véhicules</li>
- *     <li>covoiturages</li>
- *     <li>gestion de flotte interne</li>
+ * <li>une immatriculation</li>
+ * <li>une marque ({@link Marque}) et une motorisation ({@link Motorisation})</li>
+ * <li>un nombre de places et une catégorie ({@link Categorie})</li>
+ * <li>un taux d'émission de CO₂ par kilomètre</li>
  * </ul>
  * </p>
  */
@@ -39,34 +29,38 @@ import jakarta.persistence.*;
 @Table(name = "vehicule")
 public class Vehicule {
 
-    /** Identifiant unique du véhicule. */
+    /** Identifiant unique du véhicule (généré automatiquement). */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Numéro d'immatriculation du véhicule. */
+    /** Numéro d'immatriculation officiel du véhicule. */
+    @Column(nullable = false, unique = true)
     private String immatriculation;
 
     /** Marque du véhicule (ex : RENAULT, PEUGEOT, TESLA). */
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Marque marque;
 
     /** Type de motorisation (ex : ESSENCE, DIESEL, ELECTRIQUE). */
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Motorisation motorisation;
 
-    /** Nombre total de places disponibles dans le véhicule. */
+    /** Nombre total de places disponibles dans le véhicule (conducteur inclus). */
     @Column(nullable = false)
     private int nbPlace;
 
-    /** URL de la photo du véhicule (optionnelle). */
+    /** URL ou chemin d'accès vers la photographie du véhicule (optionnelle). */
     private String photoUrl;
 
-    /** Émission de CO₂ par kilomètre (en grammes). */
+    /** Émission de CO₂ estimée par kilomètre (en grammes). */
     private Double co2Km;
 
-    /** Catégorie du véhicule (ex : BERLINE, UTILITAIRE, SUV). */
+    /** Catégorie du véhicule selon sa taille ou son usage (ex : BERLINE, UTILITAIRE, SUV). */
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Categorie categorie;
 
     // --------------------
