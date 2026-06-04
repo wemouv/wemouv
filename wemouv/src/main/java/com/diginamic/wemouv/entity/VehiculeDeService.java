@@ -30,7 +30,7 @@ public class VehiculeDeService extends Vehicule {
     /** Statut actuel du véhicule (ex : DISPONIBLE, EN_REPARATION, HORS_SERVICE). */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Disponibilite statut;
+    private Disponibilite disponibilite;
 
     // --------------------
     // Getters & Setters
@@ -48,11 +48,11 @@ public class VehiculeDeService extends Vehicule {
 
     /** @return le statut de disponibilité du véhicule */
     public Disponibilite getStatut() {
-        return statut;
+        return disponibilite;
     }
 
     /** @param statut le nouveau statut de disponibilité du véhicule */
     public void setStatut(Disponibilite statut) {
-        this.statut = statut;
+        this.disponibilite = statut;
     }
 }

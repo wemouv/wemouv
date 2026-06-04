@@ -70,6 +70,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Routes publiques d'authentification (login, register)
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/api/covoiturages/**").permitAll()
+
 
                         // Gestion des utilisateurs
                         .requestMatchers(HttpMethod.GET, "/api/utilisateurs/**").authenticated()
