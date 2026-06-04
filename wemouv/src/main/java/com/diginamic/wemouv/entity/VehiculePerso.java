@@ -6,26 +6,21 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 /**
- * Représente un véhicule personnel appartenant à un utilisateur.
+ * Entité JPA représentant un véhicule personnel appartenant à un collaborateur.
  * <p>
- * Cette entité hérite de {@link Vehicule} et ajoute une information
- * spécifique : le propriétaire du véhicule.
+ * Cette entité hérite de {@link Vehicule} via la stratégie de jointure (JOINED).
+ * Elle ajoute une information métier spécifique par rapport aux véhicules de la flotte :
+ * le lien direct vers le collaborateur qui en est le propriétaire.
  * </p>
- *
  * <p>
- * Les véhicules personnels peuvent être utilisés dans différents contextes :
- * <ul>
- *     <li>participation à des covoiturages</li>
- *     <li>déclarations de trajets personnels</li>
- *     <li>gestion des déplacements internes</li>
- * </ul>
+ * Les véhicules personnels sont principalement utilisés dans le cadre de la publication
+ * de trajets en covoiturage.
  * </p>
- *
  * <p>
- * Contraintes :
+ * <b>Contraintes métier :</b>
  * <ul>
- *     <li>Chaque véhicule personnel doit obligatoirement avoir un propriétaire.</li>
- *     <li>Un utilisateur peut posséder plusieurs véhicules personnels.</li>
+ * <li>Chaque véhicule personnel doit obligatoirement être rattaché à un propriétaire (non null).</li>
+ * <li>Un collaborateur (utilisateur) peut déclarer et posséder plusieurs véhicules personnels.</li>
  * </ul>
  * </p>
  */
@@ -33,7 +28,7 @@ import jakarta.persistence.Table;
 @Table(name = "vehicule_perso")
 public class VehiculePerso extends Vehicule {
 
-    /** Utilisateur propriétaire du véhicule personnel. */
+    /** Le collaborateur propriétaire de ce véhicule personnel. */
     @ManyToOne
     @JoinColumn(name = "proprietaire_id", nullable = false)
     private Utilisateur proprietaire;
@@ -42,12 +37,12 @@ public class VehiculePerso extends Vehicule {
     // Getters & Setters
     // --------------------
 
-    /** @return le propriétaire du véhicule */
+    /** @return le collaborateur propriétaire du véhicule */
     public Utilisateur getProprietaire() {
         return proprietaire;
     }
 
-    /** @param proprietaire utilisateur propriétaire du véhicule */
+    /** @param proprietaire le collaborateur propriétaire du véhicule */
     public void setProprietaire(Utilisateur proprietaire) {
         this.proprietaire = proprietaire;
     }

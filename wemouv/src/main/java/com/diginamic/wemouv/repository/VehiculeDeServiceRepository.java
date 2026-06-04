@@ -1,50 +1,58 @@
 package com.diginamic.wemouv.repository;
 
 import com.diginamic.wemouv.entity.VehiculeDeService;
+import com.diginamic.wemouv.enums.Disponibilite;
 import com.diginamic.wemouv.enums.Marque;
-import com.diginamic.wemouv.enums.Statut;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 /**
- * Repository Spring Data JPA dédié à l'entité VehiculeDeService.
- *
- * <p>Cette interface permet de manipuler les véhicules de service
- * de façon spécifique, en complément du repository générique VehiculeRepository.</p>
- *
- * <p>En étendant {@code JpaRepository<VehiculeDeService, Long>},
- * Spring fournit automatiquement les opérations standards de persistance
- * comme {@code save(...)}, {@code findById(...)}, {@code findAll()}
- * et {@code deleteById(...)}.</p>
+ * Repository Spring Data JPA dédié à l'accès aux données de l'entité {@link VehiculeDeService}.
+ * <p>
+ * Cette interface permet de manipuler spécifiquement les véhicules de la flotte
+ * d'entreprise, en complément du repository générique des véhicules.
+ * </p>
+ * <p>
+ * En étendant {@code JpaRepository<VehiculeDeService, Long>}, Spring fournit
+ * automatiquement les opérations standards de persistance (CRUD) en base de données.
+ * </p>
  */
 @Repository
 public interface VehiculeDeServiceRepository extends JpaRepository<VehiculeDeService, Long> {
 
     /**
-     * Recherche tous les véhicules de service ayant une localisation donnée.
+     * Recherche tous les véhicules de service stationnés à une localisation donnée.
      *
-     * @param localisation localisation recherchée
+     * @param localisation la localisation ou le parking d'attache recherché
      * @return la liste des véhicules de service correspondants
      */
     List<VehiculeDeService> findByLocalisation(String localisation);
 
     /**
-     * Recherche tous les véhicules de service ayant un statut donné.
+     * Recherche tous les véhicules de service selon leur disponibilité technique ou logistique.
      *
-     * @param statut statut recherché
+     * @param statut l'état du véhicule (ex: DISPONIBLE, EN_REPARATION) via l'énumération {@link Disponibilite}
      * @return la liste des véhicules de service correspondants
      */
-    List<VehiculeDeService> findByStatut(Statut statut);
+    List<VehiculeDeService> findByStatut(Disponibilite statut);
 
     /**
-     * TÂCHE 15 : Recherche les véhicules par immatriculation (recherche partielle et insensible à la casse).
+     * Recherche les véhicules de service dont la plaque d'immatriculation contient le fragment de texte saisi.
+     * <p>Recherche partielle (type LIKE %texte%) ignorant les majuscules/minuscules.
+     * Idéal pour une barre de recherche administrateur.</p>
+     *
+     * @param immatriculation le fragment de plaque d'immatriculation recherché
+     * @return la liste des véhicules correspondants
      */
     List<VehiculeDeService> findByImmatriculationContainingIgnoreCase(String immatriculation);
 
     /**
-     * TÂCHE 15 : Recherche les véhicules par marque (recherche partielle et insensible à la casse).
+     * Recherche les véhicules de service appartenant à un constructeur spécifique.
+     *
+     * @param marque la marque du constructeur via l'énumération {@link Marque}
+     * @return la liste des véhicules de service correspondants
      */
     List<VehiculeDeService> findByMarque(Marque marque);
 

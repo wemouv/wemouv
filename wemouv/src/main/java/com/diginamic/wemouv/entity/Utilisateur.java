@@ -5,61 +5,61 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 /**
- * Représente un utilisateur de la plateforme WeMouv.
+ * Entité JPA représentant un utilisateur (collaborateur) de la plateforme WeMouv.
  * <p>
  * Cette entité contient les informations personnelles et d'authentification
  * nécessaires pour identifier un utilisateur, gérer ses droits et déterminer
  * s'il peut accéder aux fonctionnalités de l'application.
  * </p>
- *
  * <p>
  * Un utilisateur possède :
  * <ul>
- *     <li>des informations d'identité (nom, prénom)</li>
- *     <li>des informations de connexion (email, mot de passe)</li>
- *     <li>un rôle déterminant ses permissions ({@link Role})</li>
- *     <li>un statut indiquant si son compte est actif</li>
+ * <li>des informations d'identité (nom, prénom, adresse)</li>
+ * <li>des informations de connexion sécurisées (email, mot de passe)</li>
+ * <li>un rôle déterminant ses permissions via l'énumération {@link Role}</li>
+ * <li>un statut indiquant si son compte est actif (gestion du soft delete)</li>
  * </ul>
  * </p>
- *
  * <p>
- * L'email est unique et sert d'identifiant de connexion.
+ * L'adresse e-mail est strictement unique en base de données et sert d'identifiant de connexion.
  * </p>
  */
 @Entity
 @Table(name = "utilisateur")
 public class Utilisateur {
 
-    /** Identifiant unique de l'utilisateur. */
+    /** Identifiant unique de l'utilisateur (généré automatiquement). */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Nom de famille de l'utilisateur. */
+    /** Nom de famille du collaborateur. */
     @Column(nullable = false, length = 100)
     private String nom;
 
-    /** Prénom de l'utilisateur. */
+    /** Prénom du collaborateur. */
     @Column(nullable = false, length = 100)
     private String prenom;
 
-    /** Adresse email unique servant d'identifiant de connexion. */
+    /** Adresse e-mail professionnelle (doit être unique). */
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    /** Mot de passe chiffré de l'utilisateur. */
+    /** * Mot de passe haché de l'utilisateur.
+     * L'annotation @JsonIgnore garantit qu'il ne sera jamais sérialisé ni renvoyé au client.
+     */
     @JsonIgnore
     @Column(nullable = false, length = 255)
     private String motDePasse;
 
-    /** Adresse postale de l'utilisateur (optionnelle). */
+    /** Adresse postale du collaborateur (optionnelle). */
     private String adresse;
 
-    /** Rôle attribué à l'utilisateur (ex : ADMIN, UTILISATEUR). */
+    /** Rôle système attribué au collaborateur (ex: ADMIN, UTILISATEUR, CHAUFFEUR). */
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    /** Indique si le compte est actif ou désactivé. */
+    /** Indique si le compte est actif (true) ou suspendu/supprimé logiquement (false). */
     private Boolean compteActif;
 
     // --------------------
@@ -72,59 +72,45 @@ public class Utilisateur {
     /** @param id identifiant de l'utilisateur */
     public void setId(Long id) { this.id = id; }
 
-    public String getNom() {
-        return nom;
-    }
+    /** @return le nom de famille de l'utilisateur */
+    public String getNom() { return nom; }
 
-    public void setNom(String nom) {
-        this.nom = nom;
-    }
+    /** @param nom le nom de famille de l'utilisateur */
+    public void setNom(String nom) { this.nom = nom; }
 
-    public String getPrenom() {
-        return prenom;
-    }
+    /** @return le prénom de l'utilisateur */
+    public String getPrenom() { return prenom; }
 
-    public void setPrenom(String prenom) {
-        this.prenom = prenom;
-    }
+    /** @param prenom le prénom de l'utilisateur */
+    public void setPrenom(String prenom) { this.prenom = prenom; }
 
-    public String getEmail() {
-        return email;
-    }
+    /** @return l'adresse e-mail de l'utilisateur */
+    public String getEmail() { return email; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    /** @param email l'adresse e-mail de l'utilisateur */
+    public void setEmail(String email) { this.email = email; }
 
-    public String getMotDePasse() {
-        return motDePasse;
-    }
+    /** @return le mot de passe haché */
+    public String getMotDePasse() { return motDePasse; }
 
-    public void setMotDePasse(String motDePasse) {
-        this.motDePasse = motDePasse;
-    }
+    /** @param motDePasse le mot de passe haché */
+    public void setMotDePasse(String motDePasse) { this.motDePasse = motDePasse; }
 
-    public String getAdresse() {
-        return adresse;
-    }
+    /** @return l'adresse postale de l'utilisateur */
+    public String getAdresse() { return adresse; }
 
-    public void setAdresse(String adresse) {
-        this.adresse = adresse;
-    }
+    /** @param adresse l'adresse postale de l'utilisateur */
+    public void setAdresse(String adresse) { this.adresse = adresse; }
 
-    public Role getRole() {
-        return role;
-    }
+    /** @return le rôle système de l'utilisateur */
+    public Role getRole() { return role; }
 
-    public void setRole(Role role) {
-        this.role = role;
-    }
+    /** @param role le rôle système de l'utilisateur */
+    public void setRole(Role role) { this.role = role; }
 
-    public Boolean getCompteActif() {
-        return compteActif;
-    }
+    /** @return true si le compte est actif, false sinon */
+    public Boolean getCompteActif() { return compteActif; }
 
-    public void setCompteActif(Boolean compteActif) {
-        this.compteActif = compteActif;
-    }
+    /** @param compteActif le statut d'activation du compte */
+    public void setCompteActif(Boolean compteActif) { this.compteActif = compteActif; }
 }
