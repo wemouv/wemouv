@@ -1,6 +1,7 @@
 package com.diginamic.wemouv.controller;
 
 import com.diginamic.wemouv.dto.ReservationModificationRequest;
+import com.diginamic.wemouv.dto.ReservationRequest;
 import com.diginamic.wemouv.entity.Reservation;
 import com.diginamic.wemouv.service.ListeReservationVehicule;
 import com.diginamic.wemouv.service.ReservationService;
@@ -128,7 +129,7 @@ public class ReservationController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateReservation(@PathVariable("id") Long id, @RequestBody Reservation details) {
         try {
-            Reservation updated = modifierReservationVehicule.modifier(id, request);
+            Reservation updated = reservationService.update(id, details);
             return ResponseEntity.ok(updated);
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

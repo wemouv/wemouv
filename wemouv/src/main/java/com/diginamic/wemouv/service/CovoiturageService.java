@@ -285,17 +285,18 @@ public class CovoiturageService {
     }
 
     /**
-     * TÂCHE 4 : Récupère et sépare les réservations d'un passager.
+     * Récupère et organise les réservations d'un passager.
      * <p>
-     * Les trajets sont classés dans une Map selon deux clés :
+     * Les trajets sont classés dans une structure de données organisée selon deux catégories :
      * <ul>
-     * <li>"enCours" : Trajets dont la date de départ est dans le futur</li>
-     * <li>"historique" : Trajets passés</li>
+     * <li>"enCours" : Trajets dont la date de départ est postérieure à l'instant présent.</li>
+     * <li>"historique" : Trajets dont la date de départ est antérieure à l'instant présent.</li>
      * </ul>
      * </p>
      *
-     * @param utilisateurId l'identifiant du passager connecté
-     * @return une Map contenant les deux listes de covoiturages
+     * @param utilisateurId l'identifiant du passager concerné
+     * @return une Map contenant les deux listes de covoiturages classées
+     * @throws RuntimeException si aucun passager n'est trouvé pour l'identifiant fourni
      */
     public Map<String, List<Covoiturage>> getReservationsPassager(Long utilisateurId) {
 
@@ -326,17 +327,18 @@ public class CovoiturageService {
     }
 
     /**
-     * TÂCHE 7 : Récupère et sépare les annonces publiées par un chauffeur.
+     * Récupère et organise les annonces publiées par un conducteur.
      * <p>
-     * Les annonces sont classées dans une Map selon deux clés :
+     * Les annonces sont classées dans une structure de données organisée selon deux catégories :
      * <ul>
-     * <li>"enCours" : Trajets planifiés triés par date chronologique ascendante</li>
-     * <li>"historique" : Anciens trajets triés par date décroissante</li>
+     * <li>"enCours" : Trajets futurs, triés par date chronologique ascendante.</li>
+     * <li>"historique" : Anciens trajets, triés par date décroissante.</li>
      * </ul>
      * </p>
      *
-     * @param conducteurId l'identifiant de l'organisateur/conducteur connecté
+     * @param conducteurId l'identifiant du conducteur organisateur
      * @return une Map organisée contenant les annonces en cours et passées
+     * @throws RuntimeException si aucun conducteur n'est trouvé pour l'identifiant fourni
      */
     public Map<String, List<Covoiturage>> getAnnoncesConducteur(Long conducteurId) {
 
