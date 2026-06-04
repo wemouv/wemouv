@@ -9,32 +9,31 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service dédié à l'annulation d'une participation à un covoiturage.
+ * Service métier dédié à l'annulation d'une participation à un covoiturage.
  * <p>
- * Ce service centralise la logique métier liée au retrait d'un utilisateur
- * d'un trajet partagé. Il supprime la ligne correspondante dans la table
- * {@code Participation_Covoiturage} et libère une place en incrémentant
- * {@code nbPlacesRestantes} sur le covoiturage concerné.
- * </p>
- *
- * <p>
- * Ce service complète {@link ReserverCovoiturage} dans le parcours utilisateur :
- * la réservation inscrit un passager, l'annulation retire cette inscription.
+ * Ce service centralise la logique liée au retrait d'un utilisateur
+ * d'un trajet partagé. Il supprime la ligne correspondante dans la table de jointure
+ * et libère une place en incrémentant le compteur du covoiturage concerné.
  * </p>
  */
 @Service
 public class AnnuleParticiaptionCovoiturage {
 
+    /** Dépôt d'accès aux données des covoiturages. */
     private final CovoiturageRepository covoiturageRepository;
+
+    /** Dépôt d'accès aux données des participations (clés composites). */
     private final ParticipationCovoiturageIdRepository participationRepository;
+
+    /** Dépôt d'accès aux données des utilisateurs. */
     private final UtilisateurRepository utilisateurRepository;
 
     /**
-     * Constructeur avec injection des repositories nécessaires à l'annulation.
+     * Constructeur avec injection des dépôts nécessaires à l'annulation.
      *
-     * @param covoiturageRepository   repository utilisé pour accéder aux covoiturages
-     * @param participationRepository repository utilisé pour gérer les participations
-     * @param utilisateurRepository   repository utilisé pour accéder aux utilisateurs
+     * @param covoiturageRepository   dépôt pour accéder aux covoiturages
+     * @param participationRepository dépôt pour gérer les participations
+     * @param utilisateurRepository   dépôt pour accéder aux utilisateurs
      */
     public AnnuleParticiaptionCovoiturage(
             CovoiturageRepository covoiturageRepository,
@@ -48,25 +47,17 @@ public class AnnuleParticiaptionCovoiturage {
     /**
      * Annule la participation d'un utilisateur à un covoiturage identifié.
      * <p>
-     * La méthode effectue les vérifications suivantes avant toute suppression :
-     * </p>
-     * <ol>
-     *     <li>existence du covoiturage en base</li>
-     *     <li>existence de l'utilisateur en base</li>
-     *     <li>existence d'une participation enregistrée pour ce couple utilisateur/covoiturage</li>
-     * </ol>
-     * <p>
-     * Si toutes les conditions sont remplies, la participation est supprimée de
-     * {@code Participation_Covoiturage} et {@code nbPlacesRestantes} est incrémenté
-     * sur le covoiturage (sans dépasser {@code nbPlacesInitial}).
-     * L'ensemble des opérations est exécuté dans une transaction.
+     * La méthode effectue les vérifications d'existence (Covoiturage, Utilisateur, Participation)
+     * avant toute suppression. Si tout est valide, la participation est détruite et
+     * une place est libérée dans le véhicule.
+     * L'ensemble des opérations est exécuté dans une transaction SQL sécurisée.
      * </p>
      *
-     * @param covoiturageId identifiant du covoiturage concerné
-     * @param utilisateurId identifiant de l'utilisateur qui annule sa participation
+     * @param covoiturageId l'identifiant du covoiturage concerné
+     * @param utilisateurId l'identifiant de l'utilisateur qui annule sa réservation
      * @throws RuntimeException si le covoiturage, l'utilisateur ou la participation est introuvable
      */
-    @Transactional //Demmarage de la transaction en base
+    @Transactional // Démarrage de la transaction en base pour garantir l'intégrité des données
     public void annuler(Long covoiturageId, Long utilisateurId) {
 
         // Étape 1 : récupération du covoiturage cible
@@ -94,4 +85,3 @@ public class AnnuleParticiaptionCovoiturage {
         }
     }
 }
-

@@ -1,4 +1,3 @@
-
 package com.diginamic.wemouv.repository;
 
 import com.diginamic.wemouv.entity.Vehicule;
@@ -12,68 +11,67 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Repository Spring Data JPA dédié à l'entité Vehicule.
- *
- * <p>Cette interface permet d'accéder aux données des véhicules
- * sans écrire manuellement les requêtes SQL ou une implémentation DAO.</p>
- *
- * <p>En étendant {@code JpaRepository<Vehicule, Long>}, Spring fournit
- * automatiquement les opérations standards de persistance :</p>
- * <ul>
- *     <li>{@code save(...)} : enregistrer ou mettre à jour un véhicule</li>
- *     <li>{@code findById(...)} : rechercher un véhicule par son identifiant</li>
- *     <li>{@code findAll()} : récupérer tous les véhicules</li>
- *     <li>{@code deleteById(...)} : supprimer un véhicule par son identifiant</li>
- * </ul>
- *
- * <p>Des méthodes de recherche personnalisées peuvent être ajoutées
- * en respectant la convention de nommage de Spring Data JPA.</p>
+ * Repository Spring Data JPA racine dédié à l'accès aux données de l'entité {@link Vehicule}.
+ * <p>
+ * Ce repository permet de requêter l'ensemble des véhicules de l'application de
+ * manière polymorphe (qu'il s'agisse de véhicules personnels ou de service).
+ * </p>
+ * <p>
+ * En étendant {@code JpaRepository<Vehicule, Long>}, Spring fournit automatiquement
+ * les opérations standards de persistance (CRUD) sans implémentation manuelle.
+ * </p>
  */
 @Repository
 public interface VehiculeRepository extends JpaRepository<Vehicule, Long> {
 
     /**
-     * Recherche un véhicule à partir de son immatriculation.
+     * Recherche un véhicule (personnel ou de service) à partir de sa plaque d'immatriculation.
+     * <p>
+     * L'immatriculation étant strictement unique en base de données, cette méthode
+     * retourne un {@link Optional} afin de gérer proprement l'absence de résultat
+     * et d'éviter les NullPointerException.
+     * </p>
      *
-     * <p>L'immatriculation étant généralement unique, cette méthode retourne
-     * un {@link Optional} afin de gérer le cas où aucun véhicule n'est trouvé.</p>
-     *
-     * @param immatriculation immatriculation recherchée
-     * @return un {@link Optional} contenant le véhicule s'il existe,
-     *         sinon un {@link Optional} vide
+     * @param immatriculation la plaque d'immatriculation officielle recherchée
+     * @return un {@link Optional} contenant le véhicule s'il existe, sinon un Optional vide
      */
     Optional<Vehicule> findByImmatriculation(String immatriculation);
 
     /**
-     * Recherche tous les véhicules d'une marque donnée.
+     * Recherche tous les véhicules appartenant à un constructeur automobile spécifique.
      *
-     * @param marque marque recherchée
-     * @return la liste des véhicules correspondant à la marque
+     * @param marque la marque recherchée via l'énumération {@link Marque}
+     * @return la liste globale des véhicules correspondants
      */
     List<Vehicule> findByMarque(Marque marque);
 
     /**
-     * Recherche tous les véhicules d'une motorisation donnée.
+     * Recherche tous les véhicules équipés d'un type de motorisation spécifique.
      *
-     * @param motorisation type de motorisation recherché
-     * @return la liste des véhicules correspondant à cette motorisation
+     * @param motorisation le type d'énergie recherché via l'énumération {@link Motorisation}
+     * @return la liste globale des véhicules correspondants
      */
     List<Vehicule> findByMotorisation(Motorisation motorisation);
 
     /**
-     * Recherche tous les véhicules d'une catégorie donnée.
+     * Recherche tous les véhicules appartenant à une catégorie (gabarit) spécifique.
      *
-     * @param categorie catégorie recherchée
-     * @return la liste des véhicules correspondant à cette catégorie
+     * @param categorie la catégorie recherchée via l'énumération {@link Categorie}
+     * @return la liste globale des véhicules correspondants
      */
     List<Vehicule> findByCategorie(Categorie categorie);
 
     /**
-     * Recherche tous les véhicules ayant un nombre de places supérieur
-     * ou égal à la valeur indiquée.
+     * Recherche tous les véhicules dont la capacité d'accueil est supérieure
+     * ou égale au nombre de places spécifié.
+     * <p>
+     * Utilise le mot-clé {@code GreaterThanEqual} pour générer une condition SQL
+     * {@code WHERE nb_place >= ?1}. Idéal pour vérifier si un véhicule peut
+     * accueillir un groupe de covoiturage.
+     * </p>
      *
-     * @param nbPlace nombre minimal de places
-     * @return la liste des véhicules correspondant au critère
+     * @param nbPlace le nombre minimum de places requises (conducteur inclus)
+     * @return la liste des véhicules disposant de la capacité suffisante
      */
     List<Vehicule> findByNbPlaceGreaterThanEqual(int nbPlace);
 }

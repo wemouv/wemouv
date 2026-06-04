@@ -34,39 +34,36 @@ public class CovoiturageService {
     private final CovoiturageRepository covoiturageRepository;
 
     /** Dépôt d'accès aux données des participations/réservations. */
-    private final ParticipationCovoiturageRepository participationCovoiturageRepository;
-
-    /** Dépôt d'accès aux données des vehicules */
-    private final VehiculeRepository vehiculeRepository;
-
-    /** Dépôt d'accès aux données des utilisateurs */
-    private final UtilisateurRepository utilisateurRepository;
-
-    /** Dépôt d'accès aux données des participations */
     private final ParticipationCovoiturageRepository participationRepository;
 
-    /** Permet d'envoyer des mail */
+    /** Dépôt d'accès aux données des véhicules. */
+    private final VehiculeRepository vehiculeRepository;
+
+    /** Dépôt d'accès aux données des utilisateurs. */
+    private final UtilisateurRepository utilisateurRepository;
+
+    /** Service permettant l'envoi de notifications par e-mail. */
     private final EmailService emailService;
 
-
     /**
-     * Constructeur injectant les repositories requis.
+     * Constructeur injectant l'ensemble des dépendances et dépôts requis.
      *
      * @param covoiturageRepository dépôt pour les covoiturages
-     * @param participationCovoiturageRepository dépôt pour les participations
+     * @param participationRepository dépôt pour les participations
+     * @param vehiculeRepository dépôt pour les véhicules
+     * @param utilisateurRepository dépôt pour les utilisateurs
+     * @param emailService service de messagerie
      */
     public CovoiturageService(CovoiturageRepository covoiturageRepository,
-                              ParticipationCovoiturageRepository participationCovoiturageRepository,
+                              ParticipationCovoiturageRepository participationRepository,
                               VehiculeRepository vehiculeRepository,
                               UtilisateurRepository utilisateurRepository,
-                              ParticipationCovoiturageRepository participationRepository,
                               EmailService emailService
     ) {
         this.covoiturageRepository = covoiturageRepository;
-        this.participationCovoiturageRepository = participationCovoiturageRepository;
+        this.participationRepository = participationRepository;
         this.vehiculeRepository = vehiculeRepository;
         this.utilisateurRepository = utilisateurRepository;
-        this.participationRepository = participationRepository;
         this.emailService = emailService;
     }
 
@@ -123,34 +120,30 @@ public class CovoiturageService {
 
     /**
      * Enregistre un nouveau covoiturage en base de données.
+     * <p>
+     * Reconstitue l'entité Covoiturage à partir du DTO reçu en récupérant
+     * les références liées (Véhicule, Organisateur, Conducteur) en base de données.
+     * </p>
      *
-     * @param request l'entité à persister
+     * @param request l'objet de transfert de données (DTO) contenant les détails de l'annonce
      * @return le covoiturage sauvegardé avec son ID généré
+     * @throws RuntimeException si le véhicule, l'organisateur ou le conducteur renseignés sont introuvables
      */
-    public Covoiturage create(
-            CovoiturageRequest request
-    ) {
+    public Covoiturage create(CovoiturageRequest request) {
 
-        Vehicule vehicule =
-                vehiculeRepository
-                        .findById(request.getVehiculeId())
-                        .orElseThrow(() ->
-                                new RuntimeException("Vehicule introuvable"));
+        Vehicule vehicule = vehiculeRepository
+                .findById(request.getVehiculeId())
+                .orElseThrow(() -> new RuntimeException("Vehicule introuvable"));
 
-        Utilisateur organisateur =
-                utilisateurRepository
-                        .findById(request.getOrganisateurId())
-                        .orElseThrow(() ->
-                                new RuntimeException("Organisateur introuvable"));
+        Utilisateur organisateur = utilisateurRepository
+                .findById(request.getOrganisateurId())
+                .orElseThrow(() -> new RuntimeException("Organisateur introuvable"));
 
-        Utilisateur conducteur =
-                utilisateurRepository
-                        .findById(request.getConducteurId())
-                        .orElseThrow(() ->
-                                new RuntimeException("Conducteur introuvable"));
+        Utilisateur conducteur = utilisateurRepository
+                .findById(request.getConducteurId())
+                .orElseThrow(() -> new RuntimeException("Conducteur introuvable"));
 
-        Covoiturage covoiturage =
-                new Covoiturage();
+        Covoiturage covoiturage = new Covoiturage();
 
         covoiturage.setAdresseDepart(request.getAdresseDepart());
         covoiturage.setAdresseArrive(request.getAdresseArrive());
@@ -170,117 +163,90 @@ public class CovoiturageService {
     }
 
     /**
-     * Met à jour un covoiturage existant.
+     * Met à jour un covoiturage existant et notifie les utilisateurs impactés.
+     * <p>
+     * Applique les nouvelles valeurs fournies par le DTO. Une fois la mise à jour
+     * effectuée, un e-mail d'information est envoyé à l'organisateur ainsi qu'à
+     * l'ensemble des passagers participants au trajet.
+     * </p>
      *
-     * @param id l'identifiant de la ressource à modifier
-     * @param request les nouvelles données à appliquer DTO
+     * @param id l'identifiant du covoiturage à modifier
+     * @param request les nouvelles données à appliquer sous forme de DTO
      * @return l'entité mise à jour en base
+     * @throws RuntimeException si le covoiturage, le véhicule ou les utilisateurs associés n'existent pas
      */
-    public Covoiturage update(
-            Long id,
-            CovoiturageRequest request
-    ) {
+    public Covoiturage update(Long id, CovoiturageRequest request) {
 
-        Covoiturage covoiturage =
-                covoiturageRepository
-                        .findById(id)
-                        .orElseThrow(() ->
-                                new RuntimeException("Covoiturage introuvable"));
+        Covoiturage covoiturage = covoiturageRepository
+                .findById(id)
+                .orElseThrow(() -> new RuntimeException("Covoiturage introuvable"));
 
-        covoiturage.setAdresseDepart(
-                request.getAdresseDepart());
+        covoiturage.setAdresseDepart(request.getAdresseDepart());
+        covoiturage.setAdresseArrive(request.getAdresseArrive());
+        covoiturage.setDateDepart(request.getDateDepart());
+        covoiturage.setDateCreation(request.getDateCreation());
+        covoiturage.setDureeTrajet(request.getDureeTrajet());
+        covoiturage.setDistanceKm(request.getDistanceKm());
+        covoiturage.setNbPlacesInitial(request.getNbPlacesInitial());
+        covoiturage.setNbPlacesRestantes(request.getNbPlacesRestantes());
+        covoiturage.setStatut(request.getStatut());
 
-        covoiturage.setAdresseArrive(
-                request.getAdresseArrive());
+        Vehicule vehicule = vehiculeRepository
+                .findById(request.getVehiculeId())
+                .orElseThrow(() -> new RuntimeException("Vehicule introuvable"));
 
-        covoiturage.setDateDepart(
-                request.getDateDepart());
+        Utilisateur organisateur = utilisateurRepository
+                .findById(request.getOrganisateurId())
+                .orElseThrow(() -> new RuntimeException("Organisateur introuvable"));
 
-        covoiturage.setDateCreation(
-                request.getDateCreation());
-
-        covoiturage.setDureeTrajet(
-                request.getDureeTrajet());
-
-        covoiturage.setDistanceKm(
-                request.getDistanceKm());
-
-        covoiturage.setNbPlacesInitial(
-                request.getNbPlacesInitial());
-
-        covoiturage.setNbPlacesRestantes(
-                request.getNbPlacesRestantes());
-
-        covoiturage.setStatut(
-                request.getStatut());
-
-        Vehicule vehicule =
-                vehiculeRepository
-                        .findById(request.getVehiculeId())
-                        .orElseThrow(() ->
-                                new RuntimeException("Vehicule introuvable"));
-
-        Utilisateur organisateur =
-                utilisateurRepository
-                        .findById(request.getOrganisateurId())
-                        .orElseThrow(() ->
-                                new RuntimeException("Organisateur introuvable"));
-
-        Utilisateur conducteur =
-                utilisateurRepository
-                        .findById(request.getConducteurId())
-                        .orElseThrow(() ->
-                                new RuntimeException("Conducteur introuvable"));
+        Utilisateur conducteur = utilisateurRepository
+                .findById(request.getConducteurId())
+                .orElseThrow(() -> new RuntimeException("Conducteur introuvable"));
 
         covoiturage.setVehicule(vehicule);
         covoiturage.setOrganisateur(organisateur);
         covoiturage.setConducteur(conducteur);
 
+        // Notification de l'organisateur (une seule fois !)
         emailService.sendMail(
                 covoiturage.getOrganisateur().getEmail(),
                 "Modification du covoiturage",
                 "Votre covoiturage a été modifié."
         );
 
+        // Notification des passagers
         for (ParticipationCovoiturage participation : covoiturage.getParticipations()) {
-                    emailService.sendMail(
+            emailService.sendMail(
                     participation.getUtilisateur().getEmail(),
                     "Modification du covoiturage",
                     "Votre covoiturage a été modifié."
             );
         }
 
-        emailService.sendMail(
-                covoiturage.getOrganisateur().getEmail(),
-                "Modification du covoiturage",
-                "Votre covoiturage a été modifié."
-        );
-
-
         return covoiturageRepository.save(covoiturage);
     }
 
     /**
-     * Supprime définitivement un covoiturage par son ID.
+     * Supprime définitivement un covoiturage et informe les participants.
+     * <p>
+     * Le processus est transactionnel : les participations liées à ce trajet sont
+     * supprimées en premier pour éviter les erreurs de clés étrangères. Les passagers
+     * et l'organisateur reçoivent un e-mail confirmant l'annulation/suppression.
+     * </p>
      *
      * @param id l'identifiant du covoiturage à détruire
+     * @throws RuntimeException si le covoiturage ciblé est introuvable
      */
     @Transactional
     public void delete(Long id) {
 
-        Covoiturage covoiturage =
-                covoiturageRepository
-                        .findById(id)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Covoiturage introuvable"
-                                ));
+        Covoiturage covoiturage = covoiturageRepository
+                .findById(id)
+                .orElseThrow(() -> new RuntimeException("Covoiturage introuvable"));
 
-        participationRepository
-                .deleteByCovoiturageId(id);
+        participationRepository.deleteByCovoiturageId(id);
 
-        covoiturageRepository
-                .delete(covoiturage);
+        covoiturageRepository.delete(covoiturage);
 
         for (ParticipationCovoiturage participation : covoiturage.getParticipations()) {
             emailService.sendMail(
@@ -332,12 +298,16 @@ public class CovoiturageService {
      * @return une Map contenant les deux listes de covoiturages
      */
     public Map<String, List<Covoiturage>> getReservationsPassager(Long utilisateurId) {
+
+        utilisateurRepository.findById(utilisateurId)
+                .orElseThrow(() -> new RuntimeException("Passager introuvable avec l'ID : " + utilisateurId));
+
         LocalDateTime maintenant = LocalDateTime.now();
 
-        List<ParticipationCovoiturage> futures = participationCovoiturageRepository
+        List<ParticipationCovoiturage> futures = participationRepository
                 .findByUtilisateurIdAndCovoiturageDateDepartAfter(utilisateurId, maintenant);
 
-        List<ParticipationCovoiturage> passees = participationCovoiturageRepository
+        List<ParticipationCovoiturage> passees = participationRepository
                 .findByUtilisateurIdAndCovoiturageDateDepartBefore(utilisateurId, maintenant);
 
         List<Covoiturage> enCours = futures.stream()
@@ -369,6 +339,10 @@ public class CovoiturageService {
      * @return une Map organisée contenant les annonces en cours et passées
      */
     public Map<String, List<Covoiturage>> getAnnoncesConducteur(Long conducteurId) {
+
+        utilisateurRepository.findById(conducteurId)
+                .orElseThrow(() -> new RuntimeException("Conducteur introuvable avec l'ID : " + conducteurId));
+
         LocalDateTime maintenant = LocalDateTime.now();
 
         List<Covoiturage> enCours = covoiturageRepository

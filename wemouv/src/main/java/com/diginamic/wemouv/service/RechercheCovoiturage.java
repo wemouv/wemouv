@@ -10,91 +10,88 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Service dédié à la recherche de covoiturages.
+ * Service métier dédié à la recherche multicritère d'annonces de covoiturage.
  * <p>
- * Une requête principale est d'abord exécutée via une méthode {@code findBy...}
- * du repository, puis des filtres complémentaires sont appliqués en Java pour
- * combiner tous les critères renseignés. Seuls les covoiturages disposant d'au
- * moins une place restante sont retournés.
+ * Ce service implémente une logique de filtrage hybride :
+ * il exécute d'abord une requête principale via le dépôt (Repository) pour dégrossir les résultats,
+ * puis applique des filtres complémentaires en mémoire (via l'API Stream de Java)
+ * pour combiner tous les critères renseignés par l'utilisateur.
  * </p>
  */
 @Service
 public class RechercheCovoiturage {
 
+    /** Dépôt d'accès aux données des covoiturages. */
     private final CovoiturageRepository covoiturageRepository;
 
     /**
-     * Constructeur avec injection du repository des covoiturages.
+     * Constructeur avec injection du dépôt des covoiturages.
      *
-     * @param covoiturageRepository repository utilisé pour accéder aux données des covoiturages
+     * @param covoiturageRepository le dépôt utilisé pour l'accès aux données des trajets
      */
     public RechercheCovoiturage(CovoiturageRepository covoiturageRepository) {
         this.covoiturageRepository = covoiturageRepository;
     }
 
     /**
-     * Recherche des covoiturages correspondant aux critères fournis.
+     * Recherche et filtre les covoiturages selon les critères optionnels fournis.
+     * <p>
+     * Peu importe les filtres appliqués, cette méthode garantit que seuls
+     * les covoiturages disposant d'au moins une place restante sont retournés.
+     * </p>
      *
-     * @param depart  texte recherché dans l'adresse de départ (peut être {@code null})
-     * @param arrivee texte recherché dans l'adresse d'arrivée (peut être {@code null})
-     * @param date    date et heure de départ recherchées (peut être {@code null})
-     * @param statut  statut du covoiturage recherché (peut être {@code null})
-     * @return la liste des covoiturages correspondant aux critères et encore disponibles
+     * @param depart  fragment ou totalité de l'adresse de départ (peut être {@code null})
+     * @param arrivee fragment ou totalité de l'adresse d'arrivée (peut être {@code null})
+     * @param date    date et heure exactes de départ (peut être {@code null})
+     * @param statut  état actuel du covoiturage recherché (peut être {@code null})
+     * @return la liste des covoiturages correspondant à tous les critères actifs et ayant des places disponibles
      */
     public List<Covoiturage> rechercher(String depart, String arrivee, LocalDateTime date, Statut statut) {
 
         List<Covoiturage> resultats;
 
-        // Requête principale en base : on choisit la méthode findBy la plus adaptée
+        // Étape 1 : Requête principale en base (on choisit la méthode findBy la plus sélective possible)
         if (statut != null && date != null) {
-            // Filtre combiné statut + date de départ
             resultats = covoiturageRepository.findByStatutAndDateDepart(statut, date);
         } else if (depart != null && !depart.isBlank()) {
-            // Filtre sur l'adresse de départ (recherche partielle, insensible à la casse)
             resultats = covoiturageRepository.findByAdresseDepartContainingIgnoreCase(depart);
         } else if (arrivee != null && !arrivee.isBlank()) {
-            // Filtre sur l'adresse d'arrivée (recherche partielle, insensible à la casse)
             resultats = covoiturageRepository.findByAdresseArriveContainingIgnoreCase(arrivee);
         } else if (statut != null) {
-            // Filtre sur le statut du covoiturage
             resultats = covoiturageRepository.findByStatut(statut);
         } else if (date != null) {
-            // Filtre sur la date de départ exacte
             resultats = covoiturageRepository.findByDateDepart(date);
         } else {
-            // Aucun critère : récupération de tous les covoiturages
             resultats = covoiturageRepository.findAll();
         }
 
-        // Filtre complémentaire : adresse de départ (pour combiner plusieurs critères)
+        // Étape 2 : Filtres complémentaires en mémoire (pour croiser plusieurs critères)
+
         if (depart != null && !depart.isBlank()) {
             resultats = resultats.stream()
                     .filter(c -> c.getAdresseDepart().toLowerCase().contains(depart.toLowerCase()))
                     .collect(Collectors.toList());
         }
 
-        // Filtre complémentaire : adresse d'arrivée (pour combiner plusieurs critères)
         if (arrivee != null && !arrivee.isBlank()) {
             resultats = resultats.stream()
                     .filter(c -> c.getAdresseArrive().toLowerCase().contains(arrivee.toLowerCase()))
                     .collect(Collectors.toList());
         }
 
-        // Filtre complémentaire : statut (pour combiner plusieurs critères)
         if (statut != null) {
             resultats = resultats.stream()
                     .filter(c -> c.getStatut() == statut)
                     .collect(Collectors.toList());
         }
 
-        // Filtre complémentaire : date de départ exacte (pour combiner plusieurs critères)
         if (date != null) {
             resultats = resultats.stream()
                     .filter(c -> c.getDateDepart().equals(date))
                     .collect(Collectors.toList());
         }
 
-        // Filtre final : ne garder que les covoiturages avec au moins une place disponible
+        // Étape 3 : Filtre final métier (places obligatoirement disponibles)
         return resultats.stream()
                 .filter(c -> c.getNbPlacesRestantes() > 0)
                 .collect(Collectors.toList());

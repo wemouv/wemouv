@@ -5,23 +5,21 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 /**
- * Représente une réservation d'un véhicule par un utilisateur.
+ * Entité JPA représentant une réservation de véhicule de service par un collaborateur.
  * <p>
  * Une réservation correspond à une période définie (date de début et date de fin)
- * durant laquelle un {@link Utilisateur} utilise un {@link Vehicule}.
+ * durant laquelle un {@link Utilisateur} emprunte un {@link Vehicule} professionnel.
  * </p>
- *
  * <p>
- * L'entité contient également un statut permettant de suivre l'état de la réservation
- * (ex :  CONFIRME, ANNULE).
+ * L'entité contient également un statut permettant de suivre le cycle de vie
+ * de la réservation (ex : CONFIRME, ANNULE).
  * </p>
- *
  * <p>
- * Contraintes principales :
+ * <b>Contraintes métier principales :</b>
  * <ul>
- *     <li>Un véhicule ne peut être réservé que s'il est disponible sur la période.</li>
- *     <li>Les dates de début et de fin sont obligatoires.</li>
- *     <li>Une réservation appartient à un utilisateur unique.</li>
+ * <li>Un véhicule ne peut être réservé que s'il est disponible sur la période.</li>
+ * <li>Les dates de début et de fin sont obligatoires (non nulles).</li>
+ * <li>Une réservation appartient à un seul utilisateur unique.</li>
  * </ul>
  * </p>
  */
@@ -29,30 +27,30 @@ import java.time.LocalDateTime;
 @Table(name = "reservation")
 public class Reservation {
 
-    /** Identifiant unique de la réservation. */
+    /** Identifiant unique de la réservation (généré automatiquement). */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Date et heure de début de la réservation. */
+    /** Date et heure prévues pour la récupération du véhicule. */
     @Column(nullable = false)
     private LocalDateTime dateDebut;
 
-    /** Date et heure de fin de la réservation. */
+    /** Date et heure prévues pour la restitution du véhicule. */
     @Column(nullable = false)
     private LocalDateTime dateFin;
 
-    /** Véhicule réservé par l'utilisateur. */
+    /** Le véhicule (de service) réservé par le collaborateur. */
     @ManyToOne
     @JoinColumn(name = "vehicule_id", nullable = false)
     private Vehicule vehicule;
 
-    /** Utilisateur ayant effectué la réservation. */
+    /** Le collaborateur ayant effectué la demande de réservation. */
     @ManyToOne
     @JoinColumn(name = "utilisateur_id", nullable = false)
     private Utilisateur utilisateur;
 
-    /** Statut actuel de la réservation. */
+    /** Statut actuel de la réservation (ex: CONFIRME, ANNULE). */
     @Enumerated(EnumType.STRING)
     private Statut statut;
 
@@ -81,18 +79,18 @@ public class Reservation {
     /** @return le véhicule réservé */
     public Vehicule getVehicule() { return vehicule; }
 
-    /** @param vehicule véhicule réservé */
+    /** @param vehicule le véhicule réservé */
     public void setVehicule(Vehicule vehicule) { this.vehicule = vehicule; }
 
     /** @return l'utilisateur ayant effectué la réservation */
     public Utilisateur getUtilisateur() { return utilisateur; }
 
-    /** @param utilisateur utilisateur ayant effectué la réservation */
+    /** @param utilisateur l'utilisateur ayant effectué la réservation */
     public void setUtilisateur(Utilisateur utilisateur) { this.utilisateur = utilisateur; }
 
     /** @return le statut de la réservation */
     public Statut getStatut() { return statut; }
 
-    /** @param statut statut de la réservation */
+    /** @param statut le statut de la réservation */
     public void setStatut(Statut statut) { this.statut = statut; }
 }

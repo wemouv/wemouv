@@ -1,28 +1,21 @@
 package com.diginamic.wemouv.entity;
 
 import com.diginamic.wemouv.enums.Disponibilite;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 
 /**
- * Représente un véhicule appartenant à la flotte de service de l'entreprise.
+ * Entité JPA représentant un véhicule appartenant à la flotte de service de l'entreprise.
  * <p>
- * Cette entité hérite de {@link Vehicule} et ajoute des informations
- * spécifiques aux véhicules gérés directement par l'organisation, notamment :
+ * Cette entité hérite de {@link Vehicule} grâce à la stratégie de jointure (JOINED).
+ * Elle ajoute des informations spécifiques aux véhicules gérés directement par
+ * l'organisation (les voitures de fonction/service), notamment :
  * <ul>
- *     <li>la localisation actuelle du véhicule</li>
- *     <li>un statut indiquant sa disponibilité ou son état</li>
- * </ul>
- * </p>
- *
- * <p>
- * Les véhicules de service peuvent être utilisés dans plusieurs contextes :
- * <ul>
- *     <li>réservations internes</li>
- *     <li>missions professionnelles</li>
- *     <li>gestion de flotte</li>
+ * <li>la localisation habituelle du véhicule (parking, agence, etc.)</li>
+ * <li>un statut indiquant sa disponibilité technique ou logistique</li>
  * </ul>
  * </p>
  */
@@ -30,12 +23,14 @@ import jakarta.persistence.Table;
 @Table(name = "vehicule_service")
 public class VehiculeDeService extends Vehicule {
 
-    /** Localisation actuelle du véhicule (ex : agence, parking, ville). */
+    /** Localisation actuelle ou parking d'attache du véhicule. */
+    @Column(length = 255)
     private String localisation;
 
-    /** Statut du véhicule (ex : DISPONIBLE, EN_MISSION, HORS_SERVICE). */
+    /** Statut actuel du véhicule (ex : DISPONIBLE, EN_REPARATION, HORS_SERVICE). */
     @Enumerated(EnumType.STRING)
-    private Disponibilite disponibilite;
+    @Column(nullable = false)
+    private Disponibilite statut;
 
     // --------------------
     // Getters & Setters
@@ -46,18 +41,18 @@ public class VehiculeDeService extends Vehicule {
         return localisation;
     }
 
-    /** @param localisation localisation actuelle du véhicule */
+    /** @param localisation la localisation actuelle du véhicule */
     public void setLocalisation(String localisation) {
         this.localisation = localisation;
     }
 
-    /** @return le statut du véhicule */
+    /** @return le statut de disponibilité du véhicule */
     public Disponibilite getStatut() {
-        return disponibilite;
+        return statut;
     }
 
-    /** @param disponibilite du véhicule */
-    public void setStatut(Disponibilite disponibilite) {
-        this.disponibilite = disponibilite;
+    /** @param statut le nouveau statut de disponibilité du véhicule */
+    public void setStatut(Disponibilite statut) {
+        this.statut = statut;
     }
 }
