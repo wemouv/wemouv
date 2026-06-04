@@ -65,7 +65,7 @@ public class UtilisateurController {
     /**
      * Désactive un collaborateur.
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("desactivate/{id}")
     public ResponseEntity<Void> deleteUtilisateur(
             @PathVariable("id") Long id
     ) {
@@ -76,6 +76,23 @@ public class UtilisateurController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    /**
+     * Réactive un collaborateur à partir de son identifiant.
+     *
+     * <p>Renvoie un statut HTTP 204 si la réactivation réussit.
+     * Les erreurs (utilisateur introuvable, déjà actif, etc.)
+     * sont gérées par le GlobalExceptionHandler.</p>
+     *
+     * @param id identifiant du collaborateur à réactiver
+     * @return 204 No Content si la réactivation est effectuée
+     */
+    @DeleteMapping("reactivate/{id}")
+    public ResponseEntity<Void> reactivateUtilisateur(@PathVariable Long id) {
+        utilisateurService.reactivate(id);
+        return ResponseEntity.noContent().build();
+    }
+
 
 
 
