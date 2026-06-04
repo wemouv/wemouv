@@ -2,6 +2,7 @@ package com.diginamic.wemouv.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -26,9 +27,19 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String secret;
 
-    /** Clé cryptographique générée à partir du secret en utilisant l'algorithme HMAC-SHA. */
-    private final SecretKey key =
-            Keys.hmacShaKeyFor(secret.getBytes());
+    /** * Clé cryptographique générée à partir du secret en utilisant l'algorithme HMAC-SHA.
+     * Initialisée après l'injection du secret via @PostConstruct.
+     */
+    private SecretKey key;
+
+    /**
+     * Initialise la clé cryptographique une fois que la valeur du secret
+     * a été injectée par Spring. Empêche les erreurs de type NullPointerException.
+     */
+    @PostConstruct
+    public void init() {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     /**
      * Génère un nouveau jeton JWT pour un utilisateur qui vient de s'authentifier.
