@@ -46,7 +46,9 @@ class ReserverCovoiturageTest {
 
         Covoiturage covoiturage = new Covoiturage();
         covoiturage.setNbPlacesRestantes(2);
-        covoiturage.setConducteur(conducteur); // <--- AJOUTÉ
+        Utilisateur organisateur = new Utilisateur();
+        organisateur.setId(99L);
+        covoiturage.setOrganisateur(organisateur);
 
         Utilisateur utilisateur = new Utilisateur();
         utilisateur.setId(utilisateurId);
@@ -81,5 +83,31 @@ class ReserverCovoiturageTest {
         when(utilisateurRepository.findById(10L)).thenReturn(Optional.of(new Utilisateur()));
 
         assertThrows(IllegalStateException.class, () -> reserverService.reserver(1L, 10L));
+    }
+
+    /**
+     * Vérifie qu'un organisateur ne peut pas réserver une place sur le covoiturage qu'il a publié.
+     */
+    @Test
+    void reserver_QuandOrganisateur_DoitLancerException() {
+        Long covoiturageId = 1L;
+        Long organisateurId = 5L;
+
+        Covoiturage covoiturage = new Covoiturage();
+        covoiturage.setNbPlacesRestantes(2);
+        Utilisateur organisateur = new Utilisateur();
+        organisateur.setId(organisateurId);
+        covoiturage.setOrganisateur(organisateur);
+
+        when(covoiturageRepository.findById(covoiturageId)).thenReturn(Optional.of(covoiturage));
+        when(utilisateurRepository.findById(organisateurId)).thenReturn(Optional.of(organisateur));
+
+        IllegalStateException ex = assertThrows(
+                IllegalStateException.class,
+                () -> reserverService.reserver(covoiturageId, organisateurId));
+
+        assertTrue(ex.getMessage().contains("organisateur"));
+        verify(participationRepository, never()).save(any());
+        verify(covoiturageRepository, never()).save(any());
     }
 }
