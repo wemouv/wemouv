@@ -39,6 +39,7 @@ public class ParticipationCovoiturage {
     @JsonIgnore
     private Covoiturage covoiturage;
 
+
     // --------------------
     // Getters & Setters
     // --------------------

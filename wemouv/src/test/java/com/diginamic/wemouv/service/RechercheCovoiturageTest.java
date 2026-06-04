@@ -1,38 +1,81 @@
 package com.diginamic.wemouv.service;
 
+import com.diginamic.wemouv.entity.Covoiturage;
+import com.diginamic.wemouv.enums.Statut;
+import com.diginamic.wemouv.repository.CovoiturageRepository;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import java.util.List;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
+
+/**
+ * Suite de tests unitaires pour {@link RechercheCovoiturage}.
+ * <p>
+ * Cette classe vérifie la logique de filtrage des covoiturages (places disponibles,
+ * statuts) pour s'assurer que seuls les trajets pertinents sont retournés
+ * aux utilisateurs lors d'une recherche.
+ * </p>
+ */
+@ExtendWith(MockitoExtension.class)
 class RechercheCovoiturageTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Mock
+    private CovoiturageRepository covoiturageRepository;
 
-    @Autowired
+    @InjectMocks
     private RechercheCovoiturage rechercheCovoiturage;
 
+    /**
+     * Vérifie que la recherche exclut automatiquement les covoiturages
+     * dont le nombre de places restantes est égal à zéro.
+     */
     @Test
-    void rechercherService_parDepart() {
-        rechercheCovoiturage.rechercher("Paris", null, null, null);
+    void rechercher_DoitExclureTrajetsComplets() {
+        // ARRANGE
+        Covoiturage complet = new Covoiturage();
+        complet.setNbPlacesRestantes(0);
+
+        Covoiturage libre = new Covoiturage();
+        libre.setNbPlacesRestantes(2);
+
+        when(covoiturageRepository.findAll()).thenReturn(List.of(complet, libre));
+
+        // ACT
+        List<Covoiturage> result = rechercheCovoiturage.rechercher(null, null, null, null);
+
+        // ASSERT
+        assertEquals(1, result.size(), "Seul le trajet libre doit être retourné");
+        assertEquals(libre, result.get(0));
     }
 
+    /**
+     * Vérifie que le filtrage par statut est correctement appliqué par le service
+     * même si le dépôt renvoie une liste plus large.
+     */
     @Test
-    void rechercherEndpoint_parDepart() throws Exception {
-        mockMvc.perform(get("/covoiturages/recherche").param("depart", "Paris"))
-                .andDo(print());
-    }
+    void rechercher_QuandStatutFourni_DoitFiltrerEnMemoire() {
+        // ARRANGE
+        Covoiturage c1 = new Covoiturage();
+        c1.setStatut(Statut.CONFIRME);
+        c1.setNbPlacesRestantes(1);
 
-    @Test
-    void rechercherEndpoint_parStatutConfirme() throws Exception {
-        mockMvc.perform(get("/covoiturages/recherche").param("statut", "CONFIRME"))
-                .andDo(print());
+        Covoiturage c2 = new Covoiturage();
+        c2.setStatut(Statut.ANNULE);
+        c2.setNbPlacesRestantes(1);
+
+        when(covoiturageRepository.findByStatut(Statut.CONFIRME)).thenReturn(List.of(c1, c2));
+
+        // ACT
+        List<Covoiturage> result = rechercheCovoiturage.rechercher(null, null, null, Statut.CONFIRME);
+
+        // ASSERT
+        assertEquals(1, result.size(), "Le filtre doit éliminer les trajets annulés");
+        assertEquals(Statut.CONFIRME, result.get(0).getStatut());
     }
 }

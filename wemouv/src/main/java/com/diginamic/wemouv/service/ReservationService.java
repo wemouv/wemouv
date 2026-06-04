@@ -133,20 +133,34 @@ public class ReservationService {
     }
 
     /**
-     * Met à jour les informations d'une réservation.
+     * Met à jour les informations d'une réservation existante.
+     * <p>
+     * Cette méthode réalise une fusion des données : seuls les champs modifiables
+     * (dates, statut) sont mis à jour à partir de l'objet fourni.
+     * Les relations essentielles, telles que l'utilisateur et le véhicule,
+     * sont préservées pour maintenir l'intégrité de la base de données.
+     * </p>
      *
-     * @param id l'identifiant de la réservation ciblée
-     * @param reservation les nouvelles données à enregistrer
-     * @return la réservation mise à jour
-     * @throws RuntimeException si la réservation est introuvable
+     * @param id l'identifiant unique de la réservation à cibler
+     * @param details l'objet contenant les nouvelles valeurs (dates, statut)
+     * @return la réservation mise à jour et persistée
+     * @throws RuntimeException si aucune réservation n'est trouvée pour l'ID fourni
      */
-    public Reservation update(Long id, Reservation reservation) {
-        if (!reservationRepository.existsById(id)) {
-            throw new RuntimeException("Réservation introuvable pour mise à jour");
-        }
-        // Force l'ID pour être sûr d'écraser la bonne ligne en base
-        reservation.setId(id);
-        return reservationRepository.save(reservation);
+    public Reservation update(Long id, Reservation details) {
+        // 1. On cherche l'existant en base (pour récupérer l'utilisateur et le véhicule actuels)
+        Reservation existing = reservationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Réservation introuvable pour mise à jour"));
+
+        // 2. On met à jour seulement les champs autorisés
+        existing.setDateDebut(details.getDateDebut());
+        existing.setDateFin(details.getDateFin());
+        existing.setStatut(details.getStatut());
+
+        // 3. On ne touche PAS à existing.setUtilisateur() ni existing.setVehicule()
+        // car ils sont déjà dans 'existing' et on ne veut pas les écraser avec du null.
+
+        // 4. On sauvegarde l'objet 'existing' qui est maintenant complet et cohérent
+        return reservationRepository.save(existing);
     }
 
     /**

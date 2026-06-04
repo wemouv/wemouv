@@ -1,24 +1,79 @@
 package com.diginamic.wemouv.service;
 
+import com.diginamic.wemouv.entity.*;
+import com.diginamic.wemouv.repository.*;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import java.util.Optional;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+/**
+ * Suite de tests unitaires pour {@link ReserverCovoiturage}.
+ * <p>
+ * Cette classe valide la logique métier de réservation d'un covoiturage,
+ * garantissant que les contraintes de disponibilité des places et
+ * l'intégrité de la participation sont respectées.
+ * </p>
+ */
+@ExtendWith(MockitoExtension.class)
 class ReserverCovoiturageTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Mock private CovoiturageRepository covoiturageRepository;
+    @Mock private ParticipationCovoiturageIdRepository participationRepository;
+    @Mock private UtilisateurRepository utilisateurRepository;
 
+    @InjectMocks private ReserverCovoiturage reserverService;
+
+    /**
+     * Vérifie qu'une réservation valide décrémente correctement le nombre
+     * de places disponibles et persiste la nouvelle participation.
+     */
     @Test
-    void participerEndpoint() throws Exception {
-        mockMvc.perform(post("/covoiturages/31/participer/7"))
-                .andDo(print());
+    void reserver_QuandValide_DoitRetournerParticipationEtDecrementerPlaces() {
+        // ARRANGE
+        Long covoiturageId = 1L;
+        Long utilisateurId = 10L;
+
+        Covoiturage covoiturage = new Covoiturage();
+        covoiturage.setNbPlacesRestantes(2);
+
+        Utilisateur utilisateur = new Utilisateur();
+
+        when(covoiturageRepository.findById(covoiturageId)).thenReturn(Optional.of(covoiturage));
+        when(utilisateurRepository.findById(utilisateurId)).thenReturn(Optional.of(utilisateur));
+        when(participationRepository.existsById(any(ParticipationCovoiturageId.class))).thenReturn(false);
+        when(participationRepository.save(any(ParticipationCovoiturage.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        // ACT
+        ParticipationCovoiturage result = reserverService.reserver(covoiturageId, utilisateurId);
+
+        // ASSERT
+        assertNotNull(result);
+        assertEquals(1, covoiturage.getNbPlacesRestantes(), "Le nombre de places restantes devrait être décrémenté");
+        verify(covoiturageRepository).save(covoiturage);
+    }
+
+    /**
+     * Vérifie qu'une exception est levée lorsqu'un utilisateur tente de réserver
+     * une place sur un covoiturage déjà complet.
+     */
+    @Test
+    void reserver_QuandComplet_DoitLancerException() {
+        // ARRANGE
+        Covoiturage covoiturage = new Covoiturage();
+        covoiturage.setNbPlacesRestantes(0);
+
+        when(covoiturageRepository.findById(1L)).thenReturn(Optional.of(covoiturage));
+        when(utilisateurRepository.findById(10L)).thenReturn(Optional.of(new Utilisateur()));
+
+        // ACT & ASSERT
+        assertThrows(IllegalStateException.class, () -> reserverService.reserver(1L, 10L));
     }
 }
