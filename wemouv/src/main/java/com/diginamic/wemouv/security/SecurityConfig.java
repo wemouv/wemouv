@@ -57,6 +57,7 @@ public class SecurityConfig {
 
                 // 1. Désactivation du CSRF (Cross-Site Request Forgery).
                 // Inutile pour une API REST Stateless utilisant des tokens JWT.
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
 
                 // 2. Gestion des sessions en mode STATELESS.
