@@ -37,9 +37,12 @@ class ReserverCovoiturageTest {
      */
     @Test
     void reserver_QuandValide_DoitRetournerParticipationEtDecrementerPlaces() {
-        // ARRANGE
         Long covoiturageId = 1L;
         Long utilisateurId = 10L;
+
+        // Conducteur (ID != utilisateurId)
+        Utilisateur conducteur = new Utilisateur();
+        conducteur.setId(99L);
 
         Covoiturage covoiturage = new Covoiturage();
         covoiturage.setNbPlacesRestantes(2);
@@ -48,18 +51,17 @@ class ReserverCovoiturageTest {
         covoiturage.setOrganisateur(organisateur);
 
         Utilisateur utilisateur = new Utilisateur();
+        utilisateur.setId(utilisateurId);
 
         when(covoiturageRepository.findById(covoiturageId)).thenReturn(Optional.of(covoiturage));
         when(utilisateurRepository.findById(utilisateurId)).thenReturn(Optional.of(utilisateur));
         when(participationRepository.existsById(any(ParticipationCovoiturageId.class))).thenReturn(false);
         when(participationRepository.save(any(ParticipationCovoiturage.class))).thenAnswer(i -> i.getArguments()[0]);
 
-        // ACT
         ParticipationCovoiturage result = reserverService.reserver(covoiturageId, utilisateurId);
 
-        // ASSERT
         assertNotNull(result);
-        assertEquals(1, covoiturage.getNbPlacesRestantes(), "Le nombre de places restantes devrait être décrémenté");
+        assertEquals(1, covoiturage.getNbPlacesRestantes());
         verify(covoiturageRepository).save(covoiturage);
     }
 
@@ -69,14 +71,17 @@ class ReserverCovoiturageTest {
      */
     @Test
     void reserver_QuandComplet_DoitLancerException() {
-        // ARRANGE
+        // Conducteur
+        Utilisateur conducteur = new Utilisateur();
+        conducteur.setId(99L);
+
         Covoiturage covoiturage = new Covoiturage();
         covoiturage.setNbPlacesRestantes(0);
+        covoiturage.setConducteur(conducteur); // <--- AJOUTÉ
 
         when(covoiturageRepository.findById(1L)).thenReturn(Optional.of(covoiturage));
         when(utilisateurRepository.findById(10L)).thenReturn(Optional.of(new Utilisateur()));
 
-        // ACT & ASSERT
         assertThrows(IllegalStateException.class, () -> reserverService.reserver(1L, 10L));
     }
 
