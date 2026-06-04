@@ -53,8 +53,8 @@ public class ReserverCovoiturage {
     /**
      * Réserve une place pour un utilisateur dans un covoiturage identifié.
      * <p>
-     * La méthode effectue plusieurs contrôles (existence en base, places disponibles,
-     * doublon de participation) avant de valider l'inscription. L'ensemble est
+     * La méthode effectue plusieurs contrôles (existence en base, interdiction pour l'organisateur,
+     * places disponibles, doublon de participation) avant de valider l'inscription. L'ensemble est
      * transactionnel pour éviter qu'une place soit décomptée si la sauvegarde échoue.
      * </p>
      *
@@ -62,7 +62,8 @@ public class ReserverCovoiturage {
      * @param utilisateurId l'identifiant de l'utilisateur qui réserve une place
      * @return la participation créée et persistée en base
      * @throws RuntimeException      si le covoiturage ou l'utilisateur est introuvable
-     * @throws IllegalStateException s'il ne reste plus de place ou si l'utilisateur participe déjà
+     * @throws IllegalStateException s'il ne reste plus de place, si l'utilisateur participe déjà
+     *                                 ou s'il tente de réserver son propre covoiturage
      */
     @Transactional
     public ParticipationCovoiturage reserver(Long covoiturageId, Long utilisateurId) {
@@ -75,27 +76,34 @@ public class ReserverCovoiturage {
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
 
-        // Étape 3 : contrôle de la disponibilité des places
+        // Étape 3 : interdiction pour l'organisateur de réserver une place sur son propre trajet
+        if (covoiturage.getOrganisateur() != null
+                && utilisateurId.equals(covoiturage.getOrganisateur().getId())) {
+            throw new IllegalStateException(
+                    "L'organisateur ne peut pas réserver une place sur son propre covoiturage");
+        }
+
+        // Étape 4 : contrôle de la disponibilité des places
         if (covoiturage.getNbPlacesRestantes() <= 0) {
             throw new IllegalStateException("Aucune place disponible pour ce covoiturage");
         }
 
-        // Étape 4 : contrôle de l'absence d'une participation déjà existante
+        // Étape 5 : contrôle de l'absence d'une participation déjà existante
         ParticipationCovoiturageId cle = new ParticipationCovoiturageId(utilisateurId, covoiturageId);
         if (participationRepository.existsById(cle)) {
             throw new IllegalStateException("Cet utilisateur participe déjà à ce covoiturage");
         }
 
-        // Étape 5 : création de l'entité de participation avec sa clé composite
+        // Étape 6 : création de l'entité de participation avec sa clé composite
         ParticipationCovoiturage participation = new ParticipationCovoiturage();
         participation.setId(cle);
         participation.setUtilisateur(utilisateur);
         participation.setCovoiturage(covoiturage);
 
-        // Étape 6 : enregistrement de la participation en base
+        // Étape 7 : enregistrement de la participation en base
         ParticipationCovoiturage participationSauvegardee = participationRepository.save(participation);
 
-        // Étape 7 : mise à jour du nombre de places restantes sur le covoiturage
+        // Étape 8 : mise à jour du nombre de places restantes sur le covoiturage
         covoiturage.setNbPlacesRestantes(covoiturage.getNbPlacesRestantes() - 1);
         covoiturageRepository.save(covoiturage);
 

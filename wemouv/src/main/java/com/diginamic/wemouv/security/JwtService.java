@@ -19,16 +19,36 @@ import java.util.Date;
  * <li>La validation cryptographique du jeton.</li>
  * </ul>
  * </p>
+ * <p>
+ * Le secret ({@code jwt.secret}) est injecté via le constructeur : Spring fournit la valeur
+ * lue dans {@code application.properties} avant la création de la clé. On évite ainsi
+ * d'initialiser {@code key} sur un champ avec {@code @Value}, car l'injection {@code @Value}
+ * sur un attribut intervient après les initialiseurs de champs — le secret serait encore
+ * {@code null} et provoquerait une erreur au démarrage de l'application.
+ * </p>
  */
 @Service
 public class JwtService {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    /**
+     * Clé HMAC-SHA dérivée du secret JWT.
+     * <p>Construite une seule fois au démarrage du bean, dans le constructeur.</p>
+     */
+    private final SecretKey key;
 
-    /** Clé cryptographique générée à partir du secret en utilisant l'algorithme HMAC-SHA. */
-    private final SecretKey key =
-            Keys.hmacShaKeyFor(secret.getBytes());
+    /**
+     * Constructeur d'injection Spring : charge {@code jwt.secret} puis dérive la clé de signature.
+     * <p>
+     * La propriété {@code jwt.secret} doit être définie dans {@code application.properties}
+     * (ou via un profil, ex. {@code application-local.properties} avec {@code spring.profiles.active=local}).
+     * </p>
+     *
+     * @param secret chaîne secrète utilisée pour signer et vérifier les jetons (propriété {@code jwt.secret})
+     */
+    public JwtService(@Value("${jwt.secret}") String secret) {
+        // Le secret est déjà injecté par Spring : on peut construire la clé en toute sécurité.
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     /**
      * Génère un nouveau jeton JWT pour un utilisateur qui vient de s'authentifier.
