@@ -2,6 +2,7 @@ package com.diginamic.wemouv.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -22,15 +23,12 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    /** * Clé secrète utilisée pour signer numériquement les jetons.
-     * (Note : En production, cette valeur devrait idéalement être stockée dans application.properties).
-     */
-    private final String SECRET =
-            "123456789123456789123456789123456789123456789123456789";
+    @Value("${jwt.secret}")
+    private String secret;
 
     /** Clé cryptographique générée à partir du secret en utilisant l'algorithme HMAC-SHA. */
     private final SecretKey key =
-            Keys.hmacShaKeyFor(SECRET.getBytes());
+            Keys.hmacShaKeyFor(secret.getBytes());
 
     /**
      * Génère un nouveau jeton JWT pour un utilisateur qui vient de s'authentifier.
