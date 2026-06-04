@@ -54,6 +54,16 @@ public class UtilisateurService {
         });
     }
 
+    /**
+     * compteActif doit être activé
+     * @param id
+     */
+    public void reactivate(Long id) {
+        utilisateurRepository.findById(id).ifPresent(u -> {
+            u.setCompteActif(true);
+            utilisateurRepository.save(u);
+        });
 
+    }
 }
 
