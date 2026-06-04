@@ -59,7 +59,7 @@ public class ReservationController {
      * ou un statut HTTP 404 (Not Found) avec le message d'erreur approprié
      */
     @GetMapping("/{id}")
-    public ResponseEntity<?> getReservationById(@PathVariable Long id) {
+    public ResponseEntity<?> getReservationById(@PathVariable("id") Long id) {
         try {
             Reservation reservation = reservationService.findById(id);
             return ResponseEntity.ok(reservation);
@@ -122,7 +122,7 @@ public class ReservationController {
      * ou un statut HTTP 404 (Not Found) avec le message d'erreur si introuvable
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateReservation(@PathVariable Long id, @RequestBody Reservation details) {
+    public ResponseEntity<?> updateReservation(@PathVariable("id") Long id, @RequestBody Reservation details) {
         try {
             Reservation updated = reservationService.update(id, details);
             return ResponseEntity.ok(updated);
@@ -139,7 +139,7 @@ public class ReservationController {
      * ou HTTP 404 (Not Found) avec le message d'erreur si introuvable
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteReservation(@PathVariable Long id) {
+    public ResponseEntity<?> deleteReservation(@PathVariable("id") Long id) {
         try {
             reservationService.delete(id);
             return ResponseEntity.noContent().build();
