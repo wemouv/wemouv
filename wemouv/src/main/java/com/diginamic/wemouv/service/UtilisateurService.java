@@ -9,8 +9,9 @@ import java.util.List;
 /**
  * Service métier gérant les profils des collaborateurs (utilisateurs).
  * <p>
- * Cette classe assure la consultation, la création, la modification et
- * la désactivation (soft delete) des comptes utilisateurs au sein de l'application.
+ * Cette classe assure la consultation, la création, la modification,
+ * la désactivation (soft delete) et la réactivation des comptes utilisateurs
+ * au sein de l'application.
  * </p>
  */
 @Service
@@ -113,6 +114,21 @@ public class UtilisateurService {
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable pour désactivation"));
 
         u.setCompteActif(false);
+        utilisateurRepository.save(u);
+    }
+
+    /**
+     * Réactive le compte d'un utilisateur précédemment désactivé.
+     * <p>Passe la propriété {@code compteActif} à {@code true}.</p>
+     *
+     * @param id l'identifiant du collaborateur à réactiver
+     * @throws RuntimeException si l'utilisateur est introuvable
+     */
+    public void reactivate(Long id) {
+        Utilisateur u = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable pour réactivation"));
+
+        u.setCompteActif(true);
         utilisateurRepository.save(u);
     }
 }
