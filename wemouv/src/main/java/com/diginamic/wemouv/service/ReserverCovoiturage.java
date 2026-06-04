@@ -26,18 +26,25 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ReserverCovoiturage {
 
-    /** Dépôt d'accès aux données des covoiturages. */
+    /**
+     * Dépôt d'accès aux données des covoiturages.
+     */
     private final CovoiturageRepository covoiturageRepository;
 
-    /** Dépôt d'accès aux données des participations (clés composites). */
+    /**
+     * Dépôt d'accès aux données des participations (clés composites).
+     */
     private final ParticipationCovoiturageIdRepository participationRepository;
 
-    /** Dépôt d'accès aux données des utilisateurs. */
+    /**
+     * Dépôt d'accès aux données des utilisateurs.
+     */
     private final UtilisateurRepository utilisateurRepository;
 
     /**
      * Constructeur avec injection des dépôts nécessaires à la réservation.
      * * @param covoiturageRepository   dépôt pour accéder aux covoiturages
+     *
      * @param participationRepository dépôt pour gérer les participations
      * @param utilisateurRepository   dépôt pour accéder aux utilisateurs
      */
@@ -53,17 +60,16 @@ public class ReserverCovoiturage {
     /**
      * Réserve une place pour un utilisateur dans un covoiturage identifié.
      * <p>
-     * La méthode effectue plusieurs contrôles (existence en base, interdiction pour l'organisateur,
-     * places disponibles, doublon de participation) avant de valider l'inscription. L'ensemble est
-     * transactionnel pour éviter qu'une place soit décomptée si la sauvegarde échoue.
+     * La méthode effectue plusieurs contrôles (existence en base, places disponibles,
+     * doublon de participation, et propriété du trajet) avant de valider l'inscription.
      * </p>
      *
      * @param covoiturageId l'identifiant du covoiturage à rejoindre
      * @param utilisateurId l'identifiant de l'utilisateur qui réserve une place
      * @return la participation créée et persistée en base
      * @throws RuntimeException      si le covoiturage ou l'utilisateur est introuvable
-     * @throws IllegalStateException s'il ne reste plus de place, si l'utilisateur participe déjà
-     *                                 ou s'il tente de réserver son propre covoiturage
+     * @throws IllegalStateException s'il ne reste plus de place, si l'utilisateur participe déjà,
+     *                               ou s'il est le conducteur du trajet
      */
     @Transactional
     public ParticipationCovoiturage reserver(Long covoiturageId, Long utilisateurId) {
@@ -76,11 +82,9 @@ public class ReserverCovoiturage {
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
 
-        // Étape 3 : interdiction pour l'organisateur de réserver une place sur son propre trajet
-        if (covoiturage.getOrganisateur() != null
-                && utilisateurId.equals(covoiturage.getOrganisateur().getId())) {
-            throw new IllegalStateException(
-                    "L'organisateur ne peut pas réserver une place sur son propre covoiturage");
+        // Étape 3 : RÈGLE MÉTIER - Le conducteur ne peut pas réserver son propre trajet
+        if (covoiturage.getConducteur().getId().equals(utilisateurId)) {
+            throw new IllegalStateException("Le conducteur ne peut pas s'inscrire comme passager à son propre trajet");
         }
 
         // Étape 4 : contrôle de la disponibilité des places

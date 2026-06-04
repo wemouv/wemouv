@@ -1,5 +1,5 @@
 HELP.md
-.application-local.properties
+application-local.properties
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -46,3 +46,7 @@ build/
 # Fichiers temporaires ou logs du système
 *.log
 .DS_Store
+
+# Fichiers de configuration contenant des secrets
+application-local.properties
+application.properties
