@@ -1,6 +1,8 @@
 package com.diginamic.wemouv.entity;
 
 import com.diginamic.wemouv.enums.Statut;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -75,7 +77,12 @@ public class Covoiturage {
     private Utilisateur conducteur;
 
     /** Liste des inscriptions (passagers) liées à ce trajet. */
-    @OneToMany(mappedBy = "covoiturage", cascade = CascadeType.REMOVE)
+    @OneToMany(
+            mappedBy = "covoiturage",
+            cascade = CascadeType.REMOVE,
+            fetch = FetchType.EAGER
+    )
+    @JsonManagedReference
     private List<ParticipationCovoiturage> participations;
 
     // --------------------

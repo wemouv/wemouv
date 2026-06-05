@@ -1,5 +1,6 @@
 package com.diginamic.wemouv.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
@@ -36,7 +37,7 @@ public class ParticipationCovoiturage {
     @ManyToOne
     @MapsId("covoiturageId")
     @JoinColumn(name = "covoiturage_id")
-    @JsonIgnore
+    @JsonBackReference
     private Covoiturage covoiturage;
 
 
