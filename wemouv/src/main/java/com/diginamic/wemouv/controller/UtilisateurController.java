@@ -4,6 +4,7 @@ import com.diginamic.wemouv.entity.Utilisateur;
 import com.diginamic.wemouv.service.UtilisateurService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,6 +42,39 @@ public class UtilisateurController {
         return utilisateurService.findAll();
     }
 
+
+
+    /**
+     * Retourne les informations de l'utilisateur actuellement authentifié.
+     * <p>
+     * L'identité de l'utilisateur est récupérée à partir du contexte de sécurité
+     * Spring Security, alimenté par le JWT fourni dans la requête.
+     * </p>
+     *
+     * @param authentication informations d'authentification de l'utilisateur connecté
+     * @return l'utilisateur correspondant à l'email contenu dans le JWT
+     */
+    @GetMapping("/current")
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+
+        try {
+
+            String email = authentication.getName();
+
+            Utilisateur utilisateur =
+                    utilisateurService.findByEmail(email);
+
+            return ResponseEntity.ok(utilisateur);
+
+        } catch (RuntimeException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+
+        }
+    }
+
     /**
      * Récupère les détails d'un collaborateur spécifique par son identifiant unique.
      *
@@ -59,6 +93,8 @@ public class UtilisateurController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
+
+
 
     /**
      * Met à jour les informations du profil d'un collaborateur (adresse, nom, prénom, etc.).
