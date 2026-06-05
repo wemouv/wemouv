@@ -1,0 +1,199 @@
+Explication pas à pas — tests d’intégration de `VehiculeRepositoryTests.java`
+
+Fichier expliqué :
+`wemouv/src/test/java/com/diginamic/wemouv/repository/VehiculeRepositoryTests.java`
+
+Objectif global
+- Tester “en intégration” les méthodes du repository Spring Data JPA `VehiculeRepository`.
+- “En intégration” ici signifie : on charge un contexte Spring limité à la couche persistence (`@DataJpaTest`), on utilise une base H2 en mémoire (profil `test`), Hibernate crée les tables, puis on exécute de vraies requêtes générées par Spring Data.
+
+Pourquoi on persiste des `VehiculeDeService` ?
+- `Vehicule` est la classe racine (héritage JPA JOINED).
+- `Vehicule` est une entité concrète, mais dans l’application on manipule surtout ses sous-classes.
+- En persistants des `VehiculeDeService`, on vérifie que `VehiculeRepository` sait requêter de façon “polymorphe” (la table `vehicule` + jointures vers `vehicule_service` / `vehicule_perso`).
+
+————————————————————————————————————————
+Lecture ligne par ligne (Lx correspond aux lignes du fichier Java)
+————————————————————————————————————————
+
+L1 `package ...;`
+- Déclare le package Java, doit correspondre au dossier `.../repository/`.
+
+L3–L8 imports des classes métier (entités + enums)
+- `Vehicule` : entité racine.
+- `VehiculeDeService` : sous-classe de `Vehicule` (héritage).
+- `Categorie`, `Marque`, `Motorisation`, `Disponibilite` : enums stockées en base (via `@Enumerated(EnumType.STRING)` dans les entités).
+
+L9 import JUnit `@Test`
+- Marque les méthodes de test exécutées par JUnit 5.
+
+L10 import Spring `@Autowired`
+- Permet l’injection des repositories par Spring dans la classe de test.
+
+L11 import Spring Boot `@DataJpaTest`
+- Point clé “intégration JPA”.
+- Démarre un contexte Spring réduit : DataSource, EntityManager, Hibernate, repositories Spring Data.
+- Chaque test est transactionnel et rollback à la fin (base “propre” à chaque test).
+
+L12 `@ActiveProfiles("test")`
+- Active le profil `test`.
+- Généralement (dans Spring Boot), ça pointe vers `application-test.properties` / `application-test.yml` :
+  - base H2 en mémoire
+  - `ddl-auto=create-drop` (souvent), donc tables créées automatiquement.
+
+L14–L15 imports Java `List` / `Optional`
+- `Optional` : résultat possible “vide” (ex : immatriculation inconnue).
+- `List` : résultat multi-lignes.
+
+L17 `import static ...Assertions.*;`
+- Permet d’écrire `assertEquals`, `assertTrue`, etc. sans préfixe.
+
+L19–L25 JavaDoc de la classe
+- Explique ce que couvre ce fichier de test : les requêtes du repository.
+
+L26 `@DataJpaTest`
+- Active réellement le contexte JPA pour ce test.
+
+L27 `@ActiveProfiles("test")`
+- Assure l’usage de H2 (ou config test) et isolation.
+
+L28 `class VehiculeRepositoryTests {`
+- Classe de test (pas `public` : OK en JUnit 5).
+
+L30 `@Autowired private VehiculeRepository vehiculeRepository;`
+- Injection du repository “racine” qu’on veut tester.
+- Toutes les méthodes testées ensuite sont appelées sur cet objet.
+
+L31 `@Autowired private VehiculeDeServiceRepository vehiculeDeServiceRepository;`
+- On l’utilise uniquement pour “ARRANGE” : persister facilement des `VehiculeDeService`.
+- Ça garantit que les lignes existent en DB avant d’interroger via `VehiculeRepository`.
+
+————————————————————————————————————————
+Test 1 — findByImmatriculation
+————————————————————————————————————————
+
+L37 `@Test`
+- Méthode exécutée comme un test.
+
+L38 signature de la méthode de test
+- Le nom décrit le comportement attendu (bonne pratique).
+
+L39 `// ARRANGE`
+- Étape “préparation des données”.
+
+L40–L41 `vehiculeDeServiceRepository.save(creerVehiculeDeService(...))`
+- Crée un objet `VehiculeDeService` avec des champs obligatoires renseignés.
+- `save(...)` :
+  - insère dans la table `vehicule`
+  - puis insère dans la table `vehicule_service` (héritage JOINED)
+  - retourne l’entité persistée avec un `id` généré.
+
+L43 `// ACT & ASSERT — existant`
+- Étape “action” + vérification.
+
+L44 `vehiculeRepository.findByImmatriculation("VV-100-AA")`
+- Spring Data génère une requête du type : `WHERE immatriculation = ?`.
+- Retourne un `Optional<Vehicule>`.
+
+L45 `assertTrue(trouve.isPresent())`
+- Vérifie que l’Optional n’est pas vide (on a bien trouvé la ligne).
+
+L46 `assertEquals(v.getId(), trouve.get().getId())`
+- Vérifie qu’on retombe sur le même enregistrement.
+- On compare les IDs car c’est la référence DB.
+
+L48–L49 “cas inconnu”
+- On appelle la même méthode avec une immatriculation inexistante.
+- On attend un `Optional.empty()` : `isEmpty()` doit être vrai.
+
+————————————————————————————————————————
+Test 2 — findByMarque
+————————————————————————————————————————
+
+L56 `@Test`
+L57 méthode `findByMarque_DoitFiltrerParMarque`
+
+L58 `// ARRANGE — 2 RENAULT, 1 PEUGEOT`
+- On persiste 3 véhicules :
+  - 2 avec `Marque.RENAULT`
+  - 1 avec `Marque.PEUGEOT`
+
+L59–L64 `save(...)` x3
+- Remplit la base avec les cas nécessaires pour tester un filtre.
+
+L66–L67 `vehiculeRepository.findByMarque(Marque.RENAULT)`
+- Spring Data génère une requête `WHERE marque = ?`.
+- Retourne une liste de `Vehicule` (polymorphe).
+
+L70 `assertEquals(2, result.size())`
+- Vérifie qu’on obtient exactement les 2 Renault.
+
+L71 `allMatch(v -> v.getMarque() == Marque.RENAULT)`
+- Vérifie que chaque élément respecte le filtre (pas seulement le nombre).
+
+————————————————————————————————————————
+Test 3 — findByMotorisation
+————————————————————————————————————————
+
+L78–L94 même structure que le test marque
+- ARRANGE : 2 ESSENCE, 1 ELECTRIQUE
+- ACT : `findByMotorisation(Motorisation.ESSENCE)`
+- ASSERT : taille = 2 + tous ESSENCE
+
+————————————————————————————————————————
+Test 4 — findByCategorie
+————————————————————————————————————————
+
+L100–L116 même structure
+- ARRANGE : 2 BERLINE, 1 SUV
+- ACT : `findByCategorie(Categorie.BERLINE)`
+- ASSERT : taille = 2 + toutes BERLINE
+
+————————————————————————————————————————
+Test 5 — findByNbPlaceGreaterThanEqual
+————————————————————————————————————————
+
+L122–L138
+- ARRANGE : 3 véhicules avec nbPlace = 2, 5, 7
+- ACT : `findByNbPlaceGreaterThanEqual(5)`
+  - Spring Data génère une requête `WHERE nb_place >= 5`
+- ASSERT :
+  - taille = 2 (seuls 5 et 7 passent)
+  - tous ont `getNbPlace() >= 5`
+
+————————————————————————————————————————
+Factory / helper de création d’un véhicule de service
+————————————————————————————————————————
+
+L140 signature `creerVehiculeDeService(...)`
+- Petite “factory” pour éviter de dupliquer le code de création.
+- Paramètres = champs variables d’un test à l’autre.
+
+L146 `VehiculeDeService v = new VehiculeDeService();`
+- On instancie l’entité.
+
+L147–L151 `setImmatriculation`, `setMarque`, `setMotorisation`, `setNbPlace`, `setCategorie`
+- Champs du parent `Vehicule`.
+- Certains sont `@Column(nullable=false)` : il faut les renseigner sinon insertion impossible.
+
+L152 `v.setStatut(Disponibilite.DISPONIBLE);`
+- Champ spécifique de `VehiculeDeService` (table `vehicule_service`).
+- Il est `nullable=false` dans l’entité, donc obligatoire aussi.
+
+L153 `v.setLocalisation("Parking A");`
+- Champ spécifique `localisation`.
+
+L154 `return v;`
+- Retourne l’objet prêt à être persisté par `save(...)`.
+
+Comment exécuter le test
+- Dans `wemouv/` :
+  - `.\mvnw.cmd test -Dtest=VehiculeRepositoryTests`
+
+Ce que valide réellement ces tests
+- Que Spring Data JPA arrive à :
+  - créer la requête correcte à partir du nom de méthode (`findBy...`)
+  - exécuter la requête sur une vraie base H2 en mémoire
+  - mapper le résultat vers l’entité `Vehicule` (polymorphe)
+  - retourner les bons résultats (taille + propriétés vérifiées)
+

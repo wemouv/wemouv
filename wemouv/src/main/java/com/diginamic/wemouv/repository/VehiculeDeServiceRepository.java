@@ -4,6 +4,8 @@ import com.diginamic.wemouv.entity.VehiculeDeService;
 import com.diginamic.wemouv.enums.Disponibilite;
 import com.diginamic.wemouv.enums.Marque;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -36,7 +38,8 @@ public interface VehiculeDeServiceRepository extends JpaRepository<VehiculeDeSer
      * @param statut l'état du véhicule (ex: DISPONIBLE, EN_REPARATION) via l'énumération {@link Disponibilite}
      * @return la liste des véhicules de service correspondants
      */
-    List<VehiculeDeService> findByStatut(Disponibilite statut);
+    @Query("SELECT v FROM VehiculeDeService v WHERE v.disponibilite = :statut")
+    List<VehiculeDeService> findByStatut(@Param("statut") Disponibilite statut);
 
     /**
      * Recherche les véhicules de service dont la plaque d'immatriculation contient le fragment de texte saisi.

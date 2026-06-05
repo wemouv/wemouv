@@ -2,7 +2,6 @@ package com.diginamic.wemouv.service;
 
 import com.diginamic.wemouv.dto.ReservationModificationRequest;
 import com.diginamic.wemouv.entity.Reservation;
-import com.diginamic.wemouv.entity.Vehicule;
 import com.diginamic.wemouv.repository.ReservationRepository;
 import com.diginamic.wemouv.repository.VehiculeRepository;
 import org.junit.jupiter.api.Test;
