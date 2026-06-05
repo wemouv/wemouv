@@ -57,6 +57,7 @@ public class Utilisateur {
 
     /** Rôle système attribué au collaborateur (ex: ADMIN, UTILISATEUR, CHAUFFEUR). */
     @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false)
     private Role role;
 
     /** Indique si le compte est actif (true) ou suspendu/supprimé logiquement (false). */

@@ -14,45 +14,38 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * Service métier gérant la logique des covoiturages et des participations.
+ * Service métier gérant la logique principale des covoiturages.
  * <p>
  * Cette classe fait l'interface entre les contrôleurs REST et les dépôts (repositories)
  * pour assurer la cohérence des données lors des recherches, créations, modifications
- * et annulations de trajets.
+ * et annulations de trajets. Elle s'occupe également de déclencher les notifications par e-mail.
  * </p>
  */
 @Service
 public class CovoiturageService {
 
-    /** Dépôt d'accès aux données des covoiturages. */
     private final CovoiturageRepository covoiturageRepository;
-
-    /** Dépôt d'accès aux données des participations/réservations. */
     private final ParticipationCovoiturageRepository participationRepository;
-
-    /** Dépôt d'accès aux données des véhicules. */
     private final VehiculeRepository vehiculeRepository;
-
-    /** Dépôt d'accès aux données des utilisateurs. */
     private final UtilisateurRepository utilisateurRepository;
-
-    /** Service permettant l'envoi de notifications par e-mail. */
     private final EmailService emailService;
 
     /**
      * Constructeur injectant l'ensemble des dépendances et dépôts requis.
      *
-     * @param covoiturageRepository dépôt pour les covoiturages
-     * @param participationRepository dépôt pour les participations
-     * @param vehiculeRepository dépôt pour les véhicules
-     * @param utilisateurRepository dépôt pour les utilisateurs
-     * @param emailService service de messagerie
+     * @param covoiturageRepository   Dépôt d'accès aux données des covoiturages
+     * @param participationRepository Dépôt d'accès aux données des participations
+     * @param vehiculeRepository      Dépôt d'accès aux données des véhicules
+     * @param utilisateurRepository   Dépôt d'accès aux données des utilisateurs
+     * @param emailService            Service d'envoi de courriers électroniques
      */
     public CovoiturageService(CovoiturageRepository covoiturageRepository,
                               ParticipationCovoiturageRepository participationRepository,
@@ -68,20 +61,20 @@ public class CovoiturageService {
     }
 
     /**
-     * Récupère l'ensemble des covoiturages de l'application.
+     * Récupère l'ensemble des covoiturages enregistrés dans l'application.
      *
-     * @return la liste de tous les covoiturages
+     * @return Une liste contenant tous les covoiturages.
      */
     public List<Covoiturage> findAll() {
         return covoiturageRepository.findAll();
     }
 
     /**
-     * Recherche un covoiturage par son identifiant unique.
+     * Recherche un covoiturage spécifique par son identifiant unique.
      *
-     * @param id l'identifiant recherché
-     * @return le covoiturage correspondant
-     * @throws RuntimeException si aucun covoiturage ne possède cet identifiant
+     * @param id L'identifiant du covoiturage recherché.
+     * @return Le covoiturage correspondant.
+     * @throws RuntimeException Si aucun covoiturage ne correspond à cet ID.
      */
     public Covoiturage findById(Long id) {
         return covoiturageRepository.findById(id)
@@ -91,43 +84,39 @@ public class CovoiturageService {
     /**
      * Liste tous les covoiturages créés par un organisateur spécifique.
      *
-     * @param organisateurId l'identifiant unique du créateur du trajet
-     * @return la liste des covoiturages associés
+     * @param organisateurId L'identifiant du créateur des trajets.
+     * @return Une liste des covoiturages organisés par cet utilisateur.
      */
     public List<Covoiturage> findByOrganisateur(Long organisateurId) {
         return covoiturageRepository.findByOrganisateurId(organisateurId);
     }
 
     /**
-     * Liste tous les covoiturages programmés avec un véhicule donné.
+     * Liste tous les covoiturages programmés avec un véhicule précis.
      *
-     * @param vehiculeId l'identifiant du véhicule utilisé
-     * @return la liste des covoiturages concernés
+     * @param vehiculeId L'identifiant du véhicule.
+     * @return Une liste des covoiturages utilisant ce véhicule.
      */
     public List<Covoiturage> findByVehicule(Long vehiculeId) {
         return covoiturageRepository.findByVehiculeId(vehiculeId);
     }
 
     /**
-     * Filtre les covoiturages selon leur état actuel (OUVERT, COMPLET, ANNULE...).
+     * Filtre les covoiturages selon leur état actuel.
      *
-     * @param statut le statut recherché
-     * @return la liste des covoiturages correspondants
+     * @param statut Le statut recherché (ex: EN_ATTENTE, ANNULE, COMPLET).
+     * @return Une liste des covoiturages possédant ce statut.
      */
     public List<Covoiturage> findByStatut(Statut statut) {
         return covoiturageRepository.findByStatut(statut);
     }
 
     /**
-     * Enregistre un nouveau covoiturage en base de données.
-     * <p>
-     * Reconstitue l'entité Covoiturage à partir du DTO reçu en récupérant
-     * les références liées (Véhicule, Organisateur, Conducteur) en base de données.
-     * </p>
+     * Crée et enregistre un nouveau covoiturage en base de données.
      *
-     * @param request l'objet de transfert de données (DTO) contenant les détails de l'annonce
-     * @return le covoiturage sauvegardé avec son ID généré
-     * @throws RuntimeException si le véhicule, l'organisateur ou le conducteur renseignés sont introuvables
+     * @param request L'objet de transfert de données (DTO) contenant les détails de l'annonce.
+     * @return Le covoiturage nouvellement sauvegardé avec son ID généré.
+     * @throws RuntimeException Si le véhicule, l'organisateur ou le conducteur sont introuvables en base.
      */
     public Covoiturage create(CovoiturageRequest request) {
 
@@ -163,17 +152,17 @@ public class CovoiturageService {
     }
 
     /**
-     * Met à jour un covoiturage existant et notifie les utilisateurs impactés.
+     * Met à jour un covoiturage existant, recalcule les places et notifie les utilisateurs.
      * <p>
-     * Applique les nouvelles valeurs fournies par le DTO. Une fois la mise à jour
-     * effectuée, un e-mail d'information est envoyé à l'organisateur ainsi qu'à
-     * l'ensemble des passagers participants au trajet.
+     * Cette méthode détecte les changements par rapport à l'ancienne version du trajet
+     * et envoie un e-mail récapitulatif formaté en HTML à l'organisateur et aux passagers.
      * </p>
      *
-     * @param id l'identifiant du covoiturage à modifier
-     * @param request les nouvelles données à appliquer sous forme de DTO
-     * @return l'entité mise à jour en base
-     * @throws RuntimeException si le covoiturage, le véhicule ou les utilisateurs associés n'existent pas
+     * @param id      L'identifiant du covoiturage à modifier.
+     * @param request Les nouvelles données à appliquer.
+     * @return Le covoiturage mis à jour.
+     * @throws RuntimeException      Si le covoiturage ou les relations (véhicule, utilisateurs) n'existent pas.
+     * @throws IllegalStateException Si la réduction du nombre de places initiales est inférieure au nombre de passagers déjà inscrits.
      */
     public Covoiturage update(Long id, CovoiturageRequest request) {
 
@@ -181,16 +170,52 @@ public class CovoiturageService {
                 .findById(id)
                 .orElseThrow(() -> new RuntimeException("Covoiturage introuvable"));
 
+        // --- DÉTECTION DES CHANGEMENTS (AVANT DE METTRE À JOUR) ---
+        List<String> changements = new ArrayList<>();
+
+        if (!Objects.equals(covoiturage.getAdresseDepart(), request.getAdresseDepart())) {
+            changements.add("<li><strong>Départ :</strong> " + covoiturage.getAdresseDepart() + " ➔ " + request.getAdresseDepart() + "</li>");
+        }
+        if (!Objects.equals(covoiturage.getAdresseArrive(), request.getAdresseArrive())) {
+            changements.add("<li><strong>Arrivée :</strong> " + covoiturage.getAdresseArrive() + " ➔ " + request.getAdresseArrive() + "</li>");
+        }
+        if (!Objects.equals(covoiturage.getDateDepart(), request.getDateDepart())) {
+            changements.add("<li><strong>Date/Heure :</strong> " + covoiturage.getDateDepart() + " ➔ " + request.getDateDepart() + "</li>");
+        }
+        if (!Objects.equals(covoiturage.getNbPlacesInitial(), request.getNbPlacesInitial())) {
+            changements.add("<li><strong>Places totales :</strong> " + covoiturage.getNbPlacesInitial() + " ➔ " + request.getNbPlacesInitial() + "</li>");
+        }
+
+        String detailsChangementsHtml;
+        if (changements.isEmpty()) {
+            detailsChangementsHtml = "<p><em>Aucune information principale n'a été modifiée (mise à jour technique).</em></p>";
+        } else {
+            detailsChangementsHtml = "<ul style='margin: 0; padding-left: 20px;'>" + String.join("", changements) + "</ul>";
+        }
+        // -----------------------------------------------------------
+
+        // 1. Mise à jour des informations de base
         covoiturage.setAdresseDepart(request.getAdresseDepart());
         covoiturage.setAdresseArrive(request.getAdresseArrive());
         covoiturage.setDateDepart(request.getDateDepart());
         covoiturage.setDateCreation(request.getDateCreation());
         covoiturage.setDureeTrajet(request.getDureeTrajet());
         covoiturage.setDistanceKm(request.getDistanceKm());
-        covoiturage.setNbPlacesInitial(request.getNbPlacesInitial());
-        covoiturage.setNbPlacesRestantes(request.getNbPlacesRestantes());
         covoiturage.setStatut(request.getStatut());
 
+        // 2. Gestion stricte des places
+        covoiturage.setNbPlacesInitial(request.getNbPlacesInitial());
+
+        int nombreInscrits = covoiturage.getParticipations().size();
+        int nouvellesPlacesRestantes = request.getNbPlacesInitial() - nombreInscrits;
+
+        if (nouvellesPlacesRestantes < 0) {
+            throw new IllegalStateException("Impossible de réduire à " + request.getNbPlacesInitial() +
+                    " places car il y a déjà " + nombreInscrits + " passagers inscrits.");
+        }
+        covoiturage.setNbPlacesRestantes(nouvellesPlacesRestantes);
+
+        // 3. Mise à jour des relations
         Vehicule vehicule = vehiculeRepository
                 .findById(request.getVehiculeId())
                 .orElseThrow(() -> new RuntimeException("Vehicule introuvable"));
@@ -207,35 +232,43 @@ public class CovoiturageService {
         covoiturage.setOrganisateur(organisateur);
         covoiturage.setConducteur(conducteur);
 
-        // Notification de l'organisateur (une seule fois !)
-        emailService.sendMail(
-                covoiturage.getOrganisateur().getEmail(),
-                "Modification du covoiturage",
-                "Votre covoiturage a été modifié."
+        // 4. Notifications groupées au format HTML
+        List<String> destinataires = new ArrayList<>();
+        destinataires.add(covoiturage.getOrganisateur().getEmail());
+        for (ParticipationCovoiturage participation : covoiturage.getParticipations()) {
+            destinataires.add(participation.getUtilisateur().getEmail());
+        }
+        String[] tableauDestinataires = destinataires.toArray(new String[0]);
+
+        String contenuHtml = "<h2>🚗 Mise à jour de votre trajet !</h2>"
+                + "<p>Bonjour,</p>"
+                + "<p>Nous vous informons qu'une modification a été apportée à votre covoiturage.</p>"
+                + "<div style='background-color: #e8f4f8; padding: 15px; border-radius: 5px; margin-top: 15px; border-left: 4px solid #007bff;'>"
+                + "  <h3 style='margin-top: 0; color: #007bff; font-size: 16px;'>Voici ce qui a changé :</h3>"
+                + detailsChangementsHtml
+                + "</div>"
+                + "<p style='color: #888888; font-size: 12px; margin-top: 20px;'>L'équipe Wemouv</p>";
+
+        emailService.sendMailGroup(
+                tableauDestinataires,
+                "Wemouv - Modification de votre covoiturage",
+                contenuHtml
         );
 
-        // Notification des passagers
-        for (ParticipationCovoiturage participation : covoiturage.getParticipations()) {
-            emailService.sendMail(
-                    participation.getUtilisateur().getEmail(),
-                    "Modification du covoiturage",
-                    "Votre covoiturage a été modifié."
-            );
-        }
-
+        // 5. Sauvegarde
         return covoiturageRepository.save(covoiturage);
     }
 
     /**
-     * Supprime définitivement un covoiturage et informe les participants.
+     * Supprime définitivement un covoiturage de la base de données.
      * <p>
-     * Le processus est transactionnel : les participations liées à ce trajet sont
-     * supprimées en premier pour éviter les erreurs de clés étrangères. Les passagers
-     * et l'organisateur reçoivent un e-mail confirmant l'annulation/suppression.
+     * Opération transactionnelle : supprime d'abord les participations associées pour
+     * éviter les conflits de clés étrangères, puis supprime le covoiturage, et enfin
+     * notifie l'organisateur et les passagers de l'annulation.
      * </p>
      *
-     * @param id l'identifiant du covoiturage à détruire
-     * @throws RuntimeException si le covoiturage ciblé est introuvable
+     * @param id L'identifiant du covoiturage à supprimer.
+     * @throws RuntimeException Si le covoiturage est introuvable.
      */
     @Transactional
     public void delete(Long id) {
@@ -244,59 +277,61 @@ public class CovoiturageService {
                 .findById(id)
                 .orElseThrow(() -> new RuntimeException("Covoiturage introuvable"));
 
-        participationRepository.deleteByCovoiturageId(id);
-
-        covoiturageRepository.delete(covoiturage);
-
+        // Notifications groupées au format HTML pour la suppression
+        List<String> destinataires = new ArrayList<>();
+        destinataires.add(covoiturage.getOrganisateur().getEmail());
         for (ParticipationCovoiturage participation : covoiturage.getParticipations()) {
-            emailService.sendMail(
-                    participation.getUtilisateur().getEmail(),
-                    "Suppression du covoiturage",
-                    "Votre covoiturage a été supprimé."
-            );
+            destinataires.add(participation.getUtilisateur().getEmail());
         }
+        String[] tableauDestinataires = destinataires.toArray(new String[0]);
 
-        emailService.sendMail(
-                covoiturage.getOrganisateur().getEmail(),
-                "Suppression du covoiturage",
-                "Votre covoiturage a été supprimé."
+        String contenuHtml = "<h2>❌ Annulation de trajet</h2>"
+                + "<p>Bonjour,</p>"
+                + "<p>Nous vous informons que le covoiturage prévu entre <strong>" + covoiturage.getAdresseDepart() + "</strong> et <strong>" + covoiturage.getAdresseArrive() + "</strong> a été annulé.</p>"
+                + "<p style='color: #888888; font-size: 12px; margin-top: 20px;'>L'équipe Wemouv</p>";
+
+        emailService.sendMailGroup(
+                tableauDestinataires,
+                "Wemouv - Annulation de votre covoiturage",
+                contenuHtml
         );
+
+        participationRepository.deleteByCovoiturageId(id);
+        covoiturageRepository.delete(covoiturage);
     }
 
     /**
-     * Gère l'inscription d'un passager sur un trajet de covoiturage.
-     * (Sera implémenté dans la Tâche 5).
+     * Gère l'inscription d'un utilisateur à un covoiturage en tant que passager.
+     * (Méthode à implémenter prochainement).
      *
-     * @param covoiturageId le trajet concerné
-     * @param utilisateurId le passager demandeur
-     * @return la participation créée
+     * @param covoiturageId L'identifiant du covoiturage.
+     * @param utilisateurId L'identifiant de l'utilisateur qui souhaite participer.
+     * @return La nouvelle participation créée.
      */
     public ParticipationCovoiturage participer(Long covoiturageId, Long utilisateurId) {
         return null;
     }
 
     /**
-     * Gère la désinscription d'un passager d'un trajet.
+     * Gère la désinscription d'un passager d'un trajet de covoiturage.
+     * (Méthode à implémenter prochainement).
      *
-     * @param covoiturageId le trajet concerné
-     * @param utilisateurId le passager annulant sa réservation
+     * @param covoiturageId L'identifiant du covoiturage concerné.
+     * @param utilisateurId L'identifiant de l'utilisateur annulant sa place.
      */
     public void annulerParticipation(Long covoiturageId, Long utilisateurId) {
     }
 
     /**
-     * Récupère et organise les réservations d'un passager.
+     * Récupère l'historique et les réservations futures d'un passager.
      * <p>
-     * Les trajets sont classés dans une structure de données organisée selon deux catégories :
-     * <ul>
-     * <li>"enCours" : Trajets dont la date de départ est postérieure à l'instant présent.</li>
-     * <li>"historique" : Trajets dont la date de départ est antérieure à l'instant présent.</li>
-     * </ul>
+     * Trie les participations en deux listes : "enCours" (trajets à venir)
+     * et "historique" (trajets passés) selon la date actuelle.
      * </p>
      *
-     * @param utilisateurId l'identifiant du passager concerné
-     * @return une Map contenant les deux listes de covoiturages classées
-     * @throws RuntimeException si aucun passager n'est trouvé pour l'identifiant fourni
+     * @param utilisateurId L'identifiant du passager.
+     * @return Une Map contenant les listes de covoiturages sous les clés "enCours" et "historique".
+     * @throws RuntimeException Si l'utilisateur n'existe pas.
      */
     public Map<String, List<Covoiturage>> getReservationsPassager(Long utilisateurId) {
 
@@ -327,18 +362,15 @@ public class CovoiturageService {
     }
 
     /**
-     * Récupère et organise les annonces publiées par un conducteur.
+     * Récupère les annonces de covoiturage créées par un conducteur.
      * <p>
-     * Les annonces sont classées dans une structure de données organisée selon deux catégories :
-     * <ul>
-     * <li>"enCours" : Trajets futurs, triés par date chronologique ascendante.</li>
-     * <li>"historique" : Anciens trajets, triés par date décroissante.</li>
-     * </ul>
+     * Trie les annonces en deux listes : "enCours" (trajets à venir)
+     * et "historique" (trajets passés) selon la date actuelle.
      * </p>
      *
-     * @param conducteurId l'identifiant du conducteur organisateur
-     * @return une Map organisée contenant les annonces en cours et passées
-     * @throws RuntimeException si aucun conducteur n'est trouvé pour l'identifiant fourni
+     * @param conducteurId L'identifiant du conducteur.
+     * @return Une Map contenant les listes de covoiturages sous les clés "enCours" et "historique".
+     * @throws RuntimeException Si le conducteur n'existe pas.
      */
     public Map<String, List<Covoiturage>> getAnnoncesConducteur(Long conducteurId) {
 
