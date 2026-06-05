@@ -3,11 +3,11 @@ FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 COPY . .
 
-# On donne les droits d'exécution au script
+# git On donne les droits d'exécution au script
 RUN chmod +x mvnw
 
 # On utilise le wrapper (mvnw)
-RUN ./mvnw clean package -DskipTests
+RUN ./mvnw clean package -Dmaven.test.skip=true
 
 # Étape 2 : Exécution (Run)
 FROM eclipse-temurin:21-jdk
