@@ -2,17 +2,6 @@
 
 Bienvenue sur le code source de l'API Spring Boot du projet Wemouv. 
 
-
-## 📋 Environnement local
-
-Pour travailler sur cette API en local, voici vos points d'accès :
-
-| Outil | État attendu | Lien local |
-| :--- | :---: | :--- |
-| **API Spring Boot** | 🟢 Actif | [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) |
-| **Base de données MySQL** | 🟢 Actif | [http://localhost/phpmyadmin](http://localhost/phpmyadmin) |
-| **Serveur Mail (Ethereal)**| 🟢 Actif | [https://ethereal.email/messages](https://ethereal.email/messages) |
-
 ## 🛠️ Lancement rapide
 
 1. Assurez-vous que votre base de données MySQL est lancée sur le port 3306.
