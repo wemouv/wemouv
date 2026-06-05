@@ -1,5 +1,6 @@
 package com.diginamic.wemouv.security;
 
+import com.diginamic.wemouv.entity.Utilisateur;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +20,9 @@ public class JwtService {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
+
     public String generateToken(UserDetails user) {
+
         return Jwts.builder()
                 .setSubject(user.getUsername())
                 .setIssuedAt(new Date())
