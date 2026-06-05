@@ -1,0 +1,139 @@
+-- =============================================================================
+-- Script de création du schéma WeMouv (MySQL)
+-- Généré à partir des entités JPA du projet (Hibernate, héritage JOINED pour Vehicule)
+-- Ordre : suppression des tables dépendantes puis création avec clés étrangères
+-- =============================================================================
+
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- ---------------------------------------------------------------------------
+-- Suppression (si réinstallation)
+-- ---------------------------------------------------------------------------
+DROP TABLE IF EXISTS `Participation_Covoiturage`;
+DROP TABLE IF EXISTS reservation;
+DROP TABLE IF EXISTS covoiturage;
+DROP TABLE IF EXISTS vehicule_perso;
+DROP TABLE IF EXISTS vehicule_service;
+DROP TABLE IF EXISTS vehicule;
+DROP TABLE IF EXISTS utilisateur;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- ---------------------------------------------------------------------------
+-- 1. Utilisateur (collaborateurs / authentification)
+-- ---------------------------------------------------------------------------
+CREATE TABLE utilisateur (
+    id              BIGINT       NOT NULL AUTO_INCREMENT,
+    nom             VARCHAR(100) NOT NULL,
+    prenom          VARCHAR(100) NOT NULL,
+    email           VARCHAR(100) NOT NULL,
+    mot_de_passe    VARCHAR(255) NOT NULL,
+    adresse         VARCHAR(255) NULL,
+    role            VARCHAR(50)  NULL,
+    compte_actif    BIT(1)       NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_utilisateur_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------------------
+-- 2. Véhicule (table mère — héritage JOINED)
+--    Sous-types : vehicule_perso, vehicule_service
+-- ---------------------------------------------------------------------------
+CREATE TABLE vehicule (
+    id               BIGINT       NOT NULL AUTO_INCREMENT,
+    immatriculation  VARCHAR(255) NOT NULL,
+    marque           VARCHAR(50)  NOT NULL,
+    motorisation     VARCHAR(50)  NOT NULL,
+    nb_place         INT          NOT NULL,
+    photo_url        VARCHAR(255) NULL,
+    co2_km           DOUBLE       NULL,
+    categorie        VARCHAR(50)  NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_vehicule_immatriculation (immatriculation)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE vehicule_perso (
+    id              BIGINT NOT NULL,
+    proprietaire_id BIGINT NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_vehicule_perso_vehicule
+        FOREIGN KEY (id) REFERENCES vehicule (id) ON DELETE CASCADE,
+    CONSTRAINT fk_vehicule_perso_proprietaire
+        FOREIGN KEY (proprietaire_id) REFERENCES utilisateur (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE vehicule_service (
+    id           BIGINT       NOT NULL,
+    localisation VARCHAR(255) NULL,
+    statut       VARCHAR(50)  NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_vehicule_service_vehicule
+        FOREIGN KEY (id) REFERENCES vehicule (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------------------
+-- 3. Covoiturage
+-- ---------------------------------------------------------------------------
+CREATE TABLE covoiturage (
+    id                  BIGINT       NOT NULL AUTO_INCREMENT,
+    adresse_depart      VARCHAR(255) NOT NULL,
+    adresse_arrive      VARCHAR(255) NOT NULL,
+    date_depart         DATETIME(6)  NOT NULL,
+    date_creation       DATETIME(6)  NOT NULL,
+    duree_trajet        DOUBLE       NULL,
+    distance_km         DOUBLE       NULL,
+    nb_places_initial   INT          NOT NULL,
+    nb_places_restantes INT          NOT NULL,
+    statut              VARCHAR(50)  NULL,
+    vehicule_id         BIGINT       NOT NULL,
+    organisateur_id     BIGINT       NOT NULL,
+    conducteur_id       BIGINT       NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_covoiturage_vehicule
+        FOREIGN KEY (vehicule_id) REFERENCES vehicule (id),
+    CONSTRAINT fk_covoiturage_organisateur
+        FOREIGN KEY (organisateur_id) REFERENCES utilisateur (id),
+    CONSTRAINT fk_covoiturage_conducteur
+        FOREIGN KEY (conducteur_id) REFERENCES utilisateur (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------------------
+-- 4. Réservation de véhicule de service
+-- ---------------------------------------------------------------------------
+CREATE TABLE reservation (
+    id             BIGINT      NOT NULL AUTO_INCREMENT,
+    date_debut     DATETIME(6) NOT NULL,
+    date_fin       DATETIME(6) NOT NULL,
+    statut         VARCHAR(50) NULL,
+    vehicule_id    BIGINT      NOT NULL,
+    utilisateur_id BIGINT      NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_reservation_vehicule
+        FOREIGN KEY (vehicule_id) REFERENCES vehicule (id),
+    CONSTRAINT fk_reservation_utilisateur
+        FOREIGN KEY (utilisateur_id) REFERENCES utilisateur (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------------------
+-- 5. Participation covoiturage (clé composite utilisateur + covoiturage)
+--    Nom de table tel que défini dans l'entité @Table(name = "Participation_Covoiturage")
+-- ---------------------------------------------------------------------------
+CREATE TABLE `Participation_Covoiturage` (
+    utilisateur_id BIGINT NOT NULL,
+    covoiturage_id BIGINT NOT NULL,
+    PRIMARY KEY (utilisateur_id, covoiturage_id),
+    CONSTRAINT fk_participation_utilisateur
+        FOREIGN KEY (utilisateur_id) REFERENCES utilisateur (id),
+    CONSTRAINT fk_participation_covoiturage
+        FOREIGN KEY (covoiturage_id) REFERENCES covoiturage (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- =============================================================================
+-- Tables créées :
+--   utilisateur
+--   vehicule, vehicule_perso, vehicule_service
+--   covoiturage
+--   reservation
+--   Participation_Covoiturage
+-- =============================================================================
