@@ -49,7 +49,7 @@ public class Utilisateur {
      * L'annotation @JsonIgnore garantit qu'il ne sera jamais sérialisé ni renvoyé au client.
      */
     @JsonIgnore
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false, updatable = false, length = 255)
     private String motDePasse;
 
     /** Adresse postale du collaborateur (optionnelle). */

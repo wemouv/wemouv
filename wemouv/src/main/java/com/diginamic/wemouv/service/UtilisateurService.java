@@ -3,6 +3,7 @@ package com.diginamic.wemouv.service;
 import com.diginamic.wemouv.entity.Utilisateur;
 import com.diginamic.wemouv.repository.UtilisateurRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -76,17 +77,21 @@ public class UtilisateurService {
      * Met à jour les informations d'un utilisateur existant.
      *
      * @param id l'identifiant du collaborateur à modifier
-     * @param utilisateur les nouvelles données du profil
+     * @param details les nouvelles données du profil
      * @return l'utilisateur mis à jour
      * @throws RuntimeException si l'utilisateur est introuvable
      */
-    public Utilisateur update(Long id, Utilisateur utilisateur) {
-        if (!utilisateurRepository.existsById(id)) {
-            throw new RuntimeException("Utilisateur introuvable pour mise à jour");
-        }
-        // On force l'ID pour s'assurer d'écraser la bonne ligne en base
-        utilisateur.setId(id);
-        return utilisateurRepository.save(utilisateur);
+    @Transactional
+    public Utilisateur update(Long id, Utilisateur details) {
+        Utilisateur utilisateurExistant = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable avec l'id : " + id));
+
+        utilisateurExistant.setNom(details.getNom());
+        utilisateurExistant.setPrenom(details.getPrenom());
+        utilisateurExistant.setEmail(details.getEmail());
+        utilisateurExistant.setAdresse(details.getAdresse());
+
+        return utilisateurRepository.save(utilisateurExistant);
     }
 
     /**
