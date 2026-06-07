@@ -95,6 +95,26 @@ public class UtilisateurController {
     }
 
 
+    /**
+     * créer un nouvel utilisateur
+     * @param details
+     * @return
+     */
+    @PostMapping
+    public ResponseEntity<?> createUtilisateur(
+            @RequestBody Utilisateur details
+    ) {
+        try {
+            if (details.getMotDePasse() == null) {
+                details.setMotDePasse("wEmouv2027!");
+            }
+            Utilisateur cree = utilisateurService.create(details);
+            return ResponseEntity.status(HttpStatus.CREATED).body(cree);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
 
     /**
      * Met à jour les informations du profil d'un collaborateur (adresse, nom, prénom, etc.).
@@ -155,7 +175,16 @@ public class UtilisateurController {
         return ResponseEntity.noContent().build();
     }
 
-
+    /**
+     * sert à rechercher par un terme en paramètre
+     * @param terme
+     * @return Liste d'utilisateur
+     */
+    @GetMapping("/filtrer/search")
+    public ResponseEntity<List<Utilisateur>> searchUtilisateurs(@RequestParam("q") String terme) {
+        List<Utilisateur> resultats = utilisateurService.search(terme);
+        return ResponseEntity.ok(resultats);
+    }
 
 
 

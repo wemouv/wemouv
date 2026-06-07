@@ -76,7 +76,7 @@ public class SecurityConfig {
 
                         // Gestion des utilisateurs
                         .requestMatchers(HttpMethod.GET, "/api/utilisateurs/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/utilisateurs/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.PUT, "/api/utilisateurs/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/utilisateurs/**").hasRole("ADMIN")
 
                         // Gestion de la flotte de service (réservé aux administrateurs)

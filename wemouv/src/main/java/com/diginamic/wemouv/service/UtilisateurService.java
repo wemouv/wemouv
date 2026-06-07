@@ -2,10 +2,13 @@ package com.diginamic.wemouv.service;
 
 import com.diginamic.wemouv.entity.Utilisateur;
 import com.diginamic.wemouv.repository.UtilisateurRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Service métier gérant les profils des collaborateurs (utilisateurs).
@@ -20,14 +23,18 @@ public class UtilisateurService {
 
     /** Dépôt d'accès aux données des utilisateurs. */
     private final UtilisateurRepository utilisateurRepository;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * Constructeur avec injection du dépôt des utilisateurs.
      *
      * @param utilisateurRepository le dépôt pour interagir avec la table utilisateur
      */
-    public UtilisateurService(UtilisateurRepository utilisateurRepository) {
+    public UtilisateurService(UtilisateurRepository utilisateurRepository, EmailService emailService, PasswordEncoder passwordEncoder) {
         this.utilisateurRepository = utilisateurRepository;
+        this.emailService = emailService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
@@ -70,7 +77,32 @@ public class UtilisateurService {
      * @return l'utilisateur sauvegardé avec son ID généré
      */
     public Utilisateur create(Utilisateur utilisateur) {
-        return utilisateurRepository.save(utilisateur);
+        // Générer une chaîne aléatoire unique servant de jeton/mot de passe temporaire ( TO DO - trois changements de mot de passe, 2 inutiles )
+        String tokenTemporaire = UUID.randomUUID().toString();
+
+        // Assigner ce mot de passe temporaire (idéalement haché en BDD si ton filtre de login l'exige)
+        utilisateur.setMotDePasse(passwordEncoder.encode(tokenTemporaire));
+        utilisateur.setCompteActif(false); // Le compte reste inactif tant qu'il n'a pas configuré son mot de passe
+
+        // 3. Sauvegarder l'utilisateur en BDD
+        Utilisateur nouvelUtilisateur = utilisateurRepository.save(utilisateur);
+
+        // 4. Construire le lien Angular contenant le token (ou l'ID, selon ta stratégie de token de reset)
+        String lienConfiguration = "http://localhost:4200/initialiser-mot-de-passe?token=" + tokenTemporaire + "&email=" + nouvelUtilisateur.getEmail();
+
+        // 5. Envoyer le mail
+        String sujet = "WeMouv : Activation de votre compte collaborateur";
+        String corps = "Bonjour " + nouvelUtilisateur.getPrenom() + ",\n\n"
+                + "Un compte a été créé pour vous sur l'application WeMouv.\n"
+                + "Veuillez cliquer sur le lien ci-dessous pour configurer votre mot de passe et activer votre compte :\n\n"
+                + lienConfiguration + "\n\n"
+                + "À bientôt,\nL'équipe WeMouv.";
+
+
+        emailService.sendMail(nouvelUtilisateur.getEmail(), sujet, corps);
+        System.out.println("Mail envoyé avec succès à " + nouvelUtilisateur.getEmail());
+
+        return nouvelUtilisateur;
     }
 
     /**
@@ -135,5 +167,28 @@ public class UtilisateurService {
 
         u.setCompteActif(true);
         utilisateurRepository.save(u);
+    }
+
+    /**
+     * méthode chargée de rechercher des utilisateurs par terme précis
+     * @param terme
+     * @return liste d'utilisateurs filtrée
+     */
+    public List<Utilisateur> search(String terme) {
+        if (terme == null || terme.isBlank()) {
+            return findAll();
+        }
+
+        String termeMinuscule = terme.toLowerCase();
+
+        return findAll().stream()
+                .filter(u -> {
+                    boolean matchEmail = u.getEmail() != null && u.getEmail().toLowerCase().contains(termeMinuscule);
+                    boolean matchNom = u.getNom() != null && u.getNom().toLowerCase().contains(termeMinuscule);
+                    boolean matchPrenom = u.getPrenom() != null && u.getPrenom().toLowerCase().contains(termeMinuscule);
+
+                    return matchEmail || matchNom || matchPrenom;
+                })
+                .toList();
     }
 }
