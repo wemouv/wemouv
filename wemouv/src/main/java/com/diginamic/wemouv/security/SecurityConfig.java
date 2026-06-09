@@ -70,7 +70,14 @@ public class SecurityConfig {
                 // 3. Configuration des autorisations par URL et par Rôle
                 .authorizeHttpRequests(auth -> auth
                         // Routes publiques d'authentification (login, register)
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui/index.html",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/covoiturages/**").permitAll()
 
 
