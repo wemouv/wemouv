@@ -1,17 +1,14 @@
-# Étape 1 : Construction (Build)
 FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
-COPY . .
+COPY pom.xml .
+COPY src ./src
 
-# git On donne les droits d'exécution au script
-RUN chmod +x mvnw
+RUN mvn -B clean package -DskipTests
 
-# On utilise le wrapper (mvnw)
-RUN ./mvnw clean package -Dmaven.test.skip=true
-
-# Étape 2 : Exécution (Run)
-FROM eclipse-temurin:21-jdk
+FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY --from=build /app/target/wemouv-0.0.1-SNAPSHOT.jar app.jar
+
+COPY --from=build /app/target/*.jar app.jar
+
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=prod", "app.jar"]
