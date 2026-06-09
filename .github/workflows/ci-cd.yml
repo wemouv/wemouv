@@ -1,0 +1,164 @@
+# ============================================================
+# Pipeline CI/CD — Spring Boot
+# Déclenché à chaque push sur la branche main
+# Objectif : build, tests, sécurité, qualité, documentation
+# ============================================================
+
+name: Mise en place CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  security-events: write
+  checks: write
+  contents: read
+  actions: write
+  pull-requests: write
+
+jobs:
+  configuration:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./wemouv
+
+    steps:
+
+      # ------------------------------------------------------------
+      # 0. Supprime les anciens workflows — garde uniquement les 3 derniers
+      # ------------------------------------------------------------
+      - name: Nettoyer les anciens workflows
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          retain_days: 0
+          keep_minimum_runs: 3
+
+      # ------------------------------------------------------------
+      # 1. Clone le dépôt sur le runner
+      # ------------------------------------------------------------
+      - name: Checkout du code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ------------------------------------------------------------
+      # 2. Vérifie que les fichiers ont bien été récupérés
+      # ------------------------------------------------------------
+      - name: Afficher les fichiers
+        run: ls -la
+
+      # ------------------------------------------------------------
+      # 3. Installe le JDK 21 avec cache Maven
+      # ------------------------------------------------------------
+      - name: Configurer Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      # ------------------------------------------------------------
+      # 4. Vérifie les versions installées
+      # ------------------------------------------------------------
+      - name: Afficher la version de Java
+        run: java -version
+
+      - name: Afficher la version de Maven
+        run: mvn -version
+
+      # ------------------------------------------------------------
+      # 5. Détecte les secrets committés par erreur
+      # ------------------------------------------------------------
+      - name: Scanner les secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ------------------------------------------------------------
+      # 6. Initialise CodeQL
+      # ------------------------------------------------------------
+      - name: Initialiser CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: java-kotlin
+
+      # ------------------------------------------------------------
+      # 7. Build + tests + JaCoCo + Checkstyle + SpotBugs
+      # ------------------------------------------------------------
+      - name: Construire avec Maven
+        run: mvn -B clean verify -Dspring.profiles.active=test -Dmaven.test.failure.ignore=true
+        env:
+          MAVEN_OPTS: "-Dmaven.wagon.http.retryHandler.count=3"
+
+      # ------------------------------------------------------------
+      # 8. Analyse SonarCloud
+      # ------------------------------------------------------------
+      - name: Analyser avec SonarCloud
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn sonar:sonar
+
+      # ------------------------------------------------------------
+      # 9. Génère le site Maven
+      # ------------------------------------------------------------
+      - name: Générer le site Maven
+        run: mvn site
+
+      # ------------------------------------------------------------
+      # 10. Analyse CodeQL
+      # ------------------------------------------------------------
+      - name: Analyser avec CodeQL
+        uses: github/codeql-action/analyze@v4
+
+      # ------------------------------------------------------------
+      # 11. Sauvegarde les artifacts
+      # ------------------------------------------------------------
+      - name: Sauvegarder le rapport JaCoCo
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jacoco-report
+          path: target/site/jacoco
+
+      - name: Sauvegarder le rapport Checkstyle
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rapport-checkstyle
+          path: target/checkstyle-result.xml
+
+      - name: Sauvegarder le rapport SpotBugs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rapport-spotbugs
+          path: target/spotbugs
+
+      # ------------------------------------------------------------
+      # 12. Publie les résultats de tests JUnit
+      # ------------------------------------------------------------
+      - name: Publier les résultats de tests
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Tests JUnit
+          path: '**/surefire-reports/*.xml'
+          reporter: java-junit
+
+      # ------------------------------------------------------------
+      # 13. Publie le taux de couverture JaCoCo
+      # ------------------------------------------------------------
+      - name: Publier la couverture JaCoCo
+        uses: madrapps/jacoco-report@v1.7.1
+        if: always()
+        with:
+          paths: target/site/jacoco/jacoco.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 50
+          min-coverage-changed-files: 50
