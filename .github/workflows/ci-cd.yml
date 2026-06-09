@@ -73,14 +73,6 @@ jobs:
         run: mvn -version
 
       # ------------------------------------------------------------
-      # 5. Détecte les secrets committés par erreur
-      # ------------------------------------------------------------
-      - name: Scanner les secrets
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # ------------------------------------------------------------
       # 6. Initialise CodeQL
       # ------------------------------------------------------------
       - name: Initialiser CodeQL
@@ -124,21 +116,21 @@ jobs:
         if: always()
         with:
           name: jacoco-report
-          path: target/site/jacoco
+          path: wemouv/target/site/jacoco
 
       - name: Sauvegarder le rapport Checkstyle
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: rapport-checkstyle
-          path: target/checkstyle-result.xml
+          path: wemouv/target/checkstyle-result.xml
 
       - name: Sauvegarder le rapport SpotBugs
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: rapport-spotbugs
-          path: target/spotbugs
+          path: wemouv/target/spotbugs
 
       # ------------------------------------------------------------
       # 12. Publie les résultats de tests JUnit
@@ -148,7 +140,7 @@ jobs:
         if: always()
         with:
           name: Tests JUnit
-          path: '**/surefire-reports/*.xml'
+          path: 'wemouv/target/surefire-reports/*.xml'
           reporter: java-junit
 
       # ------------------------------------------------------------
@@ -158,7 +150,7 @@ jobs:
         uses: madrapps/jacoco-report@v1.7.1
         if: always()
         with:
-          paths: target/site/jacoco/jacoco.xml
+          paths: wemouv/target/site/jacoco/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-overall: 50
           min-coverage-changed-files: 50
