@@ -164,6 +164,7 @@ public class VehiculeDeServiceService {
         // Mise à jour de la fiche technique
         vehicule.setImmatriculation(details.getImmatriculation());
         vehicule.setMarque(details.getMarque());
+        vehicule.setModele(details.getModele());
         vehicule.setMotorisation(details.getMotorisation());
         vehicule.setNbPlace(details.getNbPlace());
         vehicule.setPhotoUrl(details.getPhotoUrl());

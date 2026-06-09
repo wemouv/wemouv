@@ -80,6 +80,7 @@ public class VehiculePersoService {
 
         existing.setImmatriculation(vehiculePerso.getImmatriculation());
         existing.setMarque(vehiculePerso.getMarque());
+        existing.setModele(vehiculePerso.getModele());
         existing.setMotorisation(vehiculePerso.getMotorisation());
         existing.setNbPlace(vehiculePerso.getNbPlace());
         existing.setPhotoUrl(vehiculePerso.getPhotoUrl());
