@@ -140,7 +140,7 @@ jobs:
         if: always()
         with:
           name: Tests JUnit
-          path: 'wemouv/target/surefire-reports/*.xml'
+          path: '**/target/surefire-reports/TEST-*.xml'
           reporter: java-junit
 
       # ------------------------------------------------------------
