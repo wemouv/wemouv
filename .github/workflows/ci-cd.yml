@@ -94,7 +94,7 @@ jobs:
       - name: Analyser avec SonarCloud
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn sonar:sonar
+        run: mvn sonar:sonar -Dsonar.projectKey=wemouv_wemouv
 
       # ------------------------------------------------------------
       # 9. Génère le site Maven
