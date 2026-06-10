@@ -1,5 +1,7 @@
 package com.diginamic.wemouv.controller;
 
+import com.diginamic.wemouv.dto.RegisterRequest;
+import com.diginamic.wemouv.dto.UtilisateurUpdateRequest;
 import com.diginamic.wemouv.entity.Utilisateur;
 import com.diginamic.wemouv.service.UtilisateurService;
 import org.junit.jupiter.api.Test;
@@ -15,17 +17,10 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-/**
- * Suite de tests unitaires pour {@link UtilisateurController}.
- * <p>
- * Valide les codes HTTP et la délégation au service sans démarrer Spring ni MySQL.
- * </p>
- */
 @ExtendWith(MockitoExtension.class)
 class UtilisateurControllerTests {
 
     @Mock private UtilisateurService utilisateurService;
-
     @InjectMocks private UtilisateurController controller;
 
     @Test
@@ -65,8 +60,24 @@ class UtilisateurControllerTests {
     }
 
     @Test
+    void createUtilisateur_DoitRetourner201() {
+        RegisterRequest request = new RegisterRequest();
+        request.setNom("Dupont");
+        request.setEmail("dupont@test.com");
+        Utilisateur cree = new Utilisateur();
+        cree.setId(1L);
+        when(utilisateurService.create(request)).thenReturn(cree);
+
+        ResponseEntity<?> response = controller.createUtilisateur(request);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertSame(cree, response.getBody());
+        verify(utilisateurService).create(request);
+    }
+
+    @Test
     void updateUtilisateur_QuandExiste_DoitRetourner200() {
-        Utilisateur details = new Utilisateur();
+        UtilisateurUpdateRequest details = new UtilisateurUpdateRequest();
         details.setNom("Martin");
         Utilisateur updated = new Utilisateur();
         updated.setId(2L);
@@ -82,7 +93,7 @@ class UtilisateurControllerTests {
 
     @Test
     void updateUtilisateur_QuandIntrouvable_DoitRetourner404() {
-        Utilisateur details = new Utilisateur();
+        UtilisateurUpdateRequest details = new UtilisateurUpdateRequest();
         when(utilisateurService.update(2L, details))
                 .thenThrow(new RuntimeException("Introuvable"));
 

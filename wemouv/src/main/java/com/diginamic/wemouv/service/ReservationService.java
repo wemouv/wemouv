@@ -1,11 +1,14 @@
 package com.diginamic.wemouv.service;
 
+import com.diginamic.wemouv.dto.ReservationModificationRequest;
 import com.diginamic.wemouv.dto.ReservationRequest;
 import com.diginamic.wemouv.entity.Reservation;
 import com.diginamic.wemouv.entity.Utilisateur;
 import com.diginamic.wemouv.entity.Vehicule;
+import com.diginamic.wemouv.entity.VehiculeDeService;
 import com.diginamic.wemouv.enums.Statut;
 import com.diginamic.wemouv.repository.ReservationRepository;
+import com.diginamic.wemouv.repository.VehiculeDeServiceRepository;
 import com.diginamic.wemouv.repository.VehiculeRepository;
 import org.springframework.stereotype.Service;
 
@@ -28,22 +31,20 @@ public class ReservationService {
     /** Service permettant d'accéder aux profils utilisateurs. */
     private final UtilisateurService utilisateurService;
 
-    /** Dépôt d'accès aux données des véhicules. */
-    private final VehiculeRepository vehiculeRepository;
+    private final VehiculeDeServiceRepository vehiculeDeServiceRepository;
 
     /**
      * Constructeur avec injection des dépendances requises.
      *
      * @param reservationRepository dépôt pour les réservations
      * @param utilisateurService service pour les utilisateurs
-     * @param vehiculeRepository dépôt pour les véhicules
      */
     public ReservationService(ReservationRepository reservationRepository,
                               UtilisateurService utilisateurService,
-                              VehiculeRepository vehiculeRepository) {
+                              VehiculeDeServiceRepository vehiculeDeServiceRepository) {
         this.reservationRepository = reservationRepository;
         this.utilisateurService = utilisateurService;
-        this.vehiculeRepository = vehiculeRepository;
+        this.vehiculeDeServiceRepository = vehiculeDeServiceRepository;
     }
 
     /**
@@ -83,7 +84,7 @@ public class ReservationService {
 
         Utilisateur utilisateur = utilisateurService.findByEmail(email);
 
-        Vehicule vehicule = vehiculeRepository.findById(request.getVehiculeId())
+        VehiculeDeService vehicule = vehiculeDeServiceRepository.findById(request.getVehiculeId())
                 .orElseThrow(() -> new RuntimeException("Véhicule introuvable"));
 
         // Vérification de la disponibilité (chevauchement de dates)
@@ -146,20 +147,21 @@ public class ReservationService {
      * @return la réservation mise à jour et persistée
      * @throws RuntimeException si aucune réservation n'est trouvée pour l'ID fourni
      */
-    public Reservation update(Long id, Reservation details) {
-        // 1. On cherche l'existant en base (pour récupérer l'utilisateur et le véhicule actuels)
-        Reservation existing = reservationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Réservation introuvable pour mise à jour"));
+    public Reservation update(Long id, ReservationModificationRequest details) {
+        Reservation existing = findById(id);
 
-        // 2. On met à jour seulement les champs autorisés
-        existing.setDateDebut(details.getDateDebut());
-        existing.setDateFin(details.getDateFin());
-        existing.setStatut(details.getStatut());
+        if (details.getDateDebut() != null) {
+            existing.setDateDebut(details.getDateDebut());
+        }
+        if (details.getDateFin() != null) {
+            existing.setDateFin(details.getDateFin());
+        }
+        if (details.getVehiculeId() != null) {
+            VehiculeDeService vehicule = vehiculeDeServiceRepository.findById(details.getVehiculeId())
+        .orElseThrow(() -> new RuntimeException("Véhicule introuvable"));
+            existing.setVehicule(vehicule);
+        }
 
-        // 3. On ne touche PAS à existing.setUtilisateur() ni existing.setVehicule()
-        // car ils sont déjà dans 'existing' et on ne veut pas les écraser avec du null.
-
-        // 4. On sauvegarde l'objet 'existing' qui est maintenant complet et cohérent
         return reservationRepository.save(existing);
     }
 

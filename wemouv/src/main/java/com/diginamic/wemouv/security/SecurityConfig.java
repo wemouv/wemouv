@@ -70,13 +70,20 @@ public class SecurityConfig {
                 // 3. Configuration des autorisations par URL et par Rôle
                 .authorizeHttpRequests(auth -> auth
                         // Routes publiques d'authentification (login, register)
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui/index.html",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/covoiturages/**").permitAll()
 
 
                         // Gestion des utilisateurs
                         .requestMatchers(HttpMethod.GET, "/api/utilisateurs/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/utilisateurs/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.PUT, "/api/utilisateurs/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/utilisateurs/**").hasRole("ADMIN")
 
                         // Gestion de la flotte de service (réservé aux administrateurs)
@@ -117,7 +124,11 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOrigins(
-                List.of("http://localhost:4200")
+                List.of(
+                        "http://localhost:4200",
+                        "https://wemouv-frontend.onrender.com"
+                )
+
         );
 
         configuration.setAllowedMethods(

@@ -1,5 +1,6 @@
 package com.diginamic.wemouv.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -8,17 +9,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Suite de tests unitaires pour {@link EmailService}.
- * <p>
- * Cette classe valide que le service d'e-mail interagit correctement
- * avec {@link JavaMailSender} et que les messages sont construits
- * avec les paramètres attendus.
- * </p>
  */
 @ExtendWith(MockitoExtension.class)
 class EmailServiceTest {
@@ -28,6 +25,11 @@ class EmailServiceTest {
 
     @InjectMocks
     private EmailService emailService;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(emailService, "fromAddress", "test@exemple.com");
+    }
 
     /**
      * Vérifie que la méthode {@code sendMail} prépare un {@link SimpleMailMessage}
@@ -45,14 +47,47 @@ class EmailServiceTest {
         emailService.sendMail(to, subject, body);
 
         // ASSERT
-        // Utilisation d'un ArgumentCaptor pour inspecter le message envoyé au mock
         ArgumentCaptor<SimpleMailMessage> messageCaptor = ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(mailSender).send(messageCaptor.capture());
 
         SimpleMailMessage capturedMessage = messageCaptor.getValue();
 
+        assertEquals("test@exemple.com", capturedMessage.getFrom());
         assertEquals(to, capturedMessage.getTo()[0]);
         assertEquals(subject, capturedMessage.getSubject());
         assertEquals(body, capturedMessage.getText());
+    }
+
+    @Test
+    void sendMailGroup_DoitAppelerMailSender_AvecMimeMessage() {
+        // ARRANGE
+        String[] bcc = {"a@test.com", "b@test.com"};
+        String subject = "Sujet HTML";
+        String htmlBody = "<h1>Bonjour</h1>";
+
+        jakarta.mail.internet.MimeMessage mimeMessage = mock(jakarta.mail.internet.MimeMessage.class);
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        // ACT
+        emailService.sendMailGroup(bcc, subject, htmlBody);
+
+        // ASSERT
+        verify(mailSender).send(mimeMessage);
+    }
+
+    @Test
+    void sendMailGroup_QuandMessagingException_DoitGererException() throws Exception {
+        // ARRANGE
+        String[] bcc = {"a@test.com"};
+        String subject = "Sujet";
+        String htmlBody = "corps";
+
+        jakarta.mail.internet.MimeMessage mimeMessage = mock(jakarta.mail.internet.MimeMessage.class);
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        doThrow(new jakarta.mail.MessagingException("test exception"))
+                .when(mimeMessage).setFrom(any(jakarta.mail.Address.class));
+
+        // ACT & ASSERT
+        assertDoesNotThrow(() -> emailService.sendMailGroup(bcc, subject, htmlBody));
     }
 }

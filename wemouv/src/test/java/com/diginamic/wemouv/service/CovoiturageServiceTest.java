@@ -21,11 +21,6 @@ import static org.mockito.Mockito.*;
 
 /**
  * Suite de tests unitaires pour {@link CovoiturageService}.
- * <p>
- * Cette classe valide la logique métier de création, mise à jour et consultation
- * des covoiturages. Elle utilise Mockito pour isoler le service des accès
- * à la base de données et des services tiers (e-mails).
- * </p>
  */
 @ExtendWith(MockitoExtension.class)
 class CovoiturageServiceTest {
@@ -43,7 +38,6 @@ class CovoiturageServiceTest {
 
     /**
      * Initialisation des données de test avant chaque exécution.
-     * Crée un utilisateur et un covoiturage de référence avec une participation.
      */
     @BeforeEach
     void setUp() {
@@ -54,6 +48,7 @@ class CovoiturageServiceTest {
         covoiturage = new Covoiturage();
         covoiturage.setId(1L);
         covoiturage.setOrganisateur(utilisateur);
+        covoiturage.setNbPlacesRestantes(3);
 
         ParticipationCovoiturage participation = new ParticipationCovoiturage();
         participation.setUtilisateur(utilisateur);
@@ -63,8 +58,7 @@ class CovoiturageServiceTest {
     }
 
     /**
-     * Vérifie que la création d'un covoiturage sauvegarde bien l'entité
-     * en s'assurant que le conducteur, l'organisateur et le véhicule sont valides.
+     * Vérifie que la création d'un covoiturage sauvegarde bien l'entité.
      */
     @Test
     void create_DoitSauvegarderCovoiturage_AvecReferencesValides() {
@@ -72,6 +66,8 @@ class CovoiturageServiceTest {
         request.setVehiculeId(1L);
         request.setOrganisateurId(1L);
         request.setConducteurId(1L);
+        request.setNbPlacesRestantes(3);
+        request.setNbPlacesInitial(3);
 
         when(vehiculeRepository.findById(1L)).thenReturn(Optional.of(new Vehicule()));
         when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
@@ -84,8 +80,7 @@ class CovoiturageServiceTest {
     }
 
     /**
-     * Vérifie qu'une mise à jour (update) entraîne l'envoi de notifications par e-mail
-     * aux participants concernés (organisateur et passagers).
+     * Vérifie qu'une mise à jour (update) entraîne l'envoi de notifications par e-mail.
      */
     @Test
     void update_DoitEnvoyerEmails_AOrganisateurEtPassagers() {
@@ -93,6 +88,11 @@ class CovoiturageServiceTest {
         request.setVehiculeId(1L);
         request.setOrganisateurId(1L);
         request.setConducteurId(1L);
+        request.setNbPlacesRestantes(3);
+        request.setNbPlacesInitial(3);
+
+        request.setStatut(Statut.ANNULE);
+        request.setNbPlacesInitial(4);
 
         request.setStatut(Statut.ANNULE);
         request.setNbPlacesInitial(4);
@@ -100,6 +100,8 @@ class CovoiturageServiceTest {
         when(covoiturageRepository.findById(1L)).thenReturn(Optional.of(covoiturage));
         when(vehiculeRepository.findById(1L)).thenReturn(Optional.of(new Vehicule()));
         when(utilisateurRepository.findById(anyLong())).thenReturn(Optional.of(utilisateur));
+
+        // 💡 CORRECTION : getArguments()[0] car la méthode save() ne prend qu'un seul paramètre
         when(covoiturageRepository.save(any(Covoiturage.class))).thenAnswer(i -> i.getArguments()[0]);
 
         covoiturageService.update(1L, request);
@@ -107,10 +109,6 @@ class CovoiturageServiceTest {
         //verify(emailService, atLeast(2)).sendMail(anyString(), anyString(), anyString());
     }
 
-    /**
-     * Vérifie que la récupération des annonces d'un conducteur retourne bien
-     * une structure de données (Map) correcte avec les trajets classés.
-     */
     @Test
     void getAnnoncesConducteur_DoitRetournerMapCorrecte() {
         when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
@@ -122,5 +120,107 @@ class CovoiturageServiceTest {
         assertNotNull(result);
         assertTrue(result.containsKey("enCours"));
         assertEquals(1, result.get("enCours").size());
+    }
+
+    @Test
+    void findAll_DoitRetournerListe() {
+        when(covoiturageRepository.findAll()).thenReturn(List.of(covoiturage));
+        List<Covoiturage> result = covoiturageService.findAll();
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void findById_QuandExiste_DoitRetournerCovoiturage() {
+        when(covoiturageRepository.findById(1L)).thenReturn(Optional.of(covoiturage));
+        Covoiturage result = covoiturageService.findById(1L);
+        assertNotNull(result);
+    }
+
+    @Test
+    void findById_QuandExistePas_DoitLancerException() {
+        when(covoiturageRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> covoiturageService.findById(1L));
+    }
+
+    @Test
+    void findByOrganisateur_DoitRetournerListe() {
+        when(covoiturageRepository.findByOrganisateurId(1L)).thenReturn(List.of(covoiturage));
+        List<Covoiturage> result = covoiturageService.findByOrganisateur(1L);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void findByVehicule_DoitRetournerListe() {
+        when(covoiturageRepository.findByVehiculeId(1L)).thenReturn(List.of(covoiturage));
+        List<Covoiturage> result = covoiturageService.findByVehicule(1L);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void findByStatut_DoitRetournerListe() {
+        when(covoiturageRepository.findByStatut(com.diginamic.wemouv.enums.Statut.CONFIRME)).thenReturn(List.of(covoiturage));
+        List<Covoiturage> result = covoiturageService.findByStatut(com.diginamic.wemouv.enums.Statut.CONFIRME);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void update_QuandReduireNbPlacesPlusInscrits_DoitLancerException() {
+        CovoiturageRequest request = new CovoiturageRequest();
+        request.setNbPlacesInitial(0); // 0 places but we have 1 passager in setUp
+        request.setVehiculeId(1L);
+        request.setOrganisateurId(1L);
+        request.setConducteurId(1L);
+
+        when(covoiturageRepository.findById(1L)).thenReturn(Optional.of(covoiturage));
+
+        assertThrows(IllegalStateException.class, () -> covoiturageService.update(1L, request));
+    }
+
+    @Test
+    void delete_DoitEnvoyerEmailsEtSupprimerTrajetEtParticipations() {
+        when(covoiturageRepository.findById(1L)).thenReturn(Optional.of(covoiturage));
+
+        covoiturageService.delete(1L);
+
+        verify(emailService).sendMailGroup(any(String[].class), anyString(), anyString());
+        verify(participationRepository).deleteByCovoiturageId(1L);
+        verify(covoiturageRepository).delete(covoiturage);
+    }
+
+    @Test
+    void participer_EtAnnulerParticipation_DoitSExecuterSansErreur() {
+        assertNull(covoiturageService.participer(1L, 1L));
+        assertDoesNotThrow(() -> covoiturageService.annulerParticipation(1L, 1L));
+    }
+
+    @Test
+    void getReservationsPassager_DoitRetournerMapCorrecte() {
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
+        
+        ParticipationCovoiturage part1 = new ParticipationCovoiturage();
+        part1.setCovoiturage(covoiturage);
+        ParticipationCovoiturage part2 = new ParticipationCovoiturage();
+        part2.setCovoiturage(covoiturage);
+
+        when(participationRepository.findByUtilisateurIdAndCovoiturageDateDepartAfter(eq(1L), any())).thenReturn(List.of(part1));
+        when(participationRepository.findByUtilisateurIdAndCovoiturageDateDepartBefore(eq(1L), any())).thenReturn(List.of(part2));
+
+        Map<String, List<Covoiturage>> result = covoiturageService.getReservationsPassager(1L);
+
+        assertNotNull(result);
+        assertEquals(1, result.get("enCours").size());
+        assertEquals(1, result.get("historique").size());
+    }
+
+    @Test
+    void getReservationsPassager_QuandPassagerIntrouvable_DoitLancerException() {
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> covoiturageService.getReservationsPassager(1L));
+    }
+
+    @Test
+    void getAnnoncesConducteur_QuandConducteurIntrouvable_DoitLancerException() {
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> covoiturageService.getAnnoncesConducteur(1L));
     }
 }

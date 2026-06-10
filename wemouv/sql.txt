@@ -44,6 +44,7 @@ CREATE TABLE vehicule (
     id               BIGINT       NOT NULL AUTO_INCREMENT,
     immatriculation  VARCHAR(255) NOT NULL,
     marque           VARCHAR(50)  NOT NULL,
+    modele           VARCHAR(100) NULL,
     motorisation     VARCHAR(50)  NOT NULL,
     nb_place         INT          NOT NULL,
     photo_url        VARCHAR(255) NULL,
