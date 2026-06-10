@@ -123,14 +123,14 @@ jobs:
         if: always()
         with:
           name: rapport-checkstyle
-          path: wemouv/target/checkstyle-result.xml
+          path: wemouv/target/site/checkstyle-result.html
 
       - name: Sauvegarder le rapport SpotBugs
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: rapport-spotbugs
-          path: wemouv/target/spotbugs
+          path: wemouv/target/site/spotbugs.html
 
       # ------------------------------------------------------------
       # 12. Publie les résultats de tests JUnit
