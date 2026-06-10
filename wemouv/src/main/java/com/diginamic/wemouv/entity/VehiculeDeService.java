@@ -47,12 +47,12 @@ public class VehiculeDeService extends Vehicule {
     }
 
     /** @return le statut de disponibilité du véhicule */
-    public Disponibilite getStatut() {
+    public Disponibilite getDisponibilite() {
         return disponibilite;
     }
 
-    /** @param statut le nouveau statut de disponibilité du véhicule */
-    public void setStatut(Disponibilite statut) {
-        this.disponibilite = statut;
+    /** @param disponibilite le nouveau statut de disponibilité du véhicule */
+    public void setDisponibilite(Disponibilite disponibilite) {
+        this.disponibilite = disponibilite;
     }
 }

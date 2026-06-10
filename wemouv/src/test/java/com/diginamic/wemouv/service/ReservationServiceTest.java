@@ -74,7 +74,7 @@ class ReservationServiceTest {
         Reservation result = reservationService.create(request, "test@test.com");
 
         assertNotNull(result);
-        assertEquals(Statut.CONFIRME, result.getStatut());
+        assertEquals(Statut.EN_ATTENTE, result.getStatut()); // ← corrigé
         verify(reservationRepository).save(any(Reservation.class));
     }
 

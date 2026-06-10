@@ -84,9 +84,17 @@ jobs:
       # 7. Build + tests + JaCoCo + Checkstyle + SpotBugs
       # ------------------------------------------------------------
       - name: Construire avec Maven
-        run: mvn -B clean verify -Dspring.profiles.active=test -Dmaven.test.failure.ignore=true
+        run: mvn -B clean verify checkstyle:checkstyle spotbugs:spotbugs -Dspring.profiles.active=test -Dmaven.test.failure.ignore=true
         env:
           MAVEN_OPTS: "-Dmaven.wagon.http.retryHandler.count=3"
+
+      - name: Lister les fichiers générés
+        if: always()
+        run: |
+          echo "=== target/site ==="
+          ls -la target/site/ || echo "Dossier inexistant"
+          echo "=== target ==="
+          ls -la target/ || echo "Dossier inexistant"   
 
       # ------------------------------------------------------------
       # 8. Analyse SonarCloud
@@ -123,14 +131,14 @@ jobs:
         if: always()
         with:
           name: rapport-checkstyle
-          path: wemouv/target/checkstyle-result.xml
+          path: wemouv/target/site/checkstyle.html
 
       - name: Sauvegarder le rapport SpotBugs
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: rapport-spotbugs
-          path: wemouv/target/spotbugs
+          path: wemouv/target/spotbugs/spotbugs.xml
 
       # ------------------------------------------------------------
       # 12. Publie les résultats de tests JUnit
