@@ -94,6 +94,9 @@ class CovoiturageServiceTest {
         request.setStatut(Statut.ANNULE);
         request.setNbPlacesInitial(4);
 
+        request.setStatut(Statut.ANNULE);
+        request.setNbPlacesInitial(4);
+
         when(covoiturageRepository.findById(1L)).thenReturn(Optional.of(covoiturage));
         when(vehiculeRepository.findById(1L)).thenReturn(Optional.of(new Vehicule()));
         when(utilisateurRepository.findById(anyLong())).thenReturn(Optional.of(utilisateur));
