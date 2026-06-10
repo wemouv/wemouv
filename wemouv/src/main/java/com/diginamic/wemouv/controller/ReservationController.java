@@ -127,7 +127,9 @@ public class ReservationController {
      * ou un statut HTTP 404 (Not Found) avec le message d'erreur si introuvable
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateReservation(@PathVariable("id") Long id, @RequestBody Reservation details) {
+    public ResponseEntity<?> updateReservation(
+            @PathVariable("id") Long id,
+            @RequestBody ReservationModificationRequest details) { // ← DTO existant
         try {
             Reservation updated = reservationService.update(id, details);
             return ResponseEntity.ok(updated);

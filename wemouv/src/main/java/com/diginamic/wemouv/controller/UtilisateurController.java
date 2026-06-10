@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import com.diginamic.wemouv.dto.UtilisateurUpdateRequest;
 
 import java.util.List;
 
@@ -107,12 +108,9 @@ public class UtilisateurController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUtilisateur(
             @PathVariable("id") Long id,
-            @RequestBody Utilisateur details
-    ) {
+            @RequestBody UtilisateurUpdateRequest details) { // ✅
         try {
-            Utilisateur updated =
-                    utilisateurService.update(id, details);
-
+            Utilisateur updated = utilisateurService.update(id, details);
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());

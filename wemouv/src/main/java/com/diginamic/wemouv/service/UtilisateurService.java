@@ -1,6 +1,9 @@
 package com.diginamic.wemouv.service;
 
+import com.diginamic.wemouv.dto.RegisterRequest;
+import com.diginamic.wemouv.dto.UtilisateurUpdateRequest;
 import com.diginamic.wemouv.entity.Utilisateur;
+import com.diginamic.wemouv.enums.Role;
 import com.diginamic.wemouv.repository.UtilisateurRepository;
 import org.springframework.stereotype.Service;
 
@@ -65,13 +68,22 @@ public class UtilisateurService {
     /**
      * Enregistre un nouvel utilisateur en base de données.
      *
-     * @param utilisateur l'entité contenant les informations du compte
+     * @param request le DTO contenant les informations du nouveau compte
      * @return l'utilisateur sauvegardé avec son ID généré
      */
-    public Utilisateur create(Utilisateur utilisateur) {
+    public Utilisateur create(RegisterRequest request) {
+        Utilisateur utilisateur = new Utilisateur();
+        utilisateur.setNom(request.getNom());
+        utilisateur.setPrenom(request.getPrenom());
+        utilisateur.setEmail(request.getEmail());
+        utilisateur.setMotDePasse(request.getPassword()); // ⚠️ à encoder si pas déjà fait ailleurs
+        utilisateur.setAdresse(request.getAdresse());
+        if (request.getRole() != null) {
+            utilisateur.setRole(Role.valueOf(request.getRole()));
+        }
+        utilisateur.setCompteActif(request.getCompteActif() != null ? request.getCompteActif() : true);
         return utilisateurRepository.save(utilisateur);
     }
-
     /**
      * Met à jour les informations d'un utilisateur existant.
      *
@@ -80,13 +92,13 @@ public class UtilisateurService {
      * @return l'utilisateur mis à jour
      * @throws RuntimeException si l'utilisateur est introuvable
      */
-    public Utilisateur update(Long id, Utilisateur utilisateur) {
-        if (!utilisateurRepository.existsById(id)) {
-            throw new RuntimeException("Utilisateur introuvable pour mise à jour");
-        }
-        // On force l'ID pour s'assurer d'écraser la bonne ligne en base
-        utilisateur.setId(id);
-        return utilisateurRepository.save(utilisateur);
+    public Utilisateur update(Long id, UtilisateurUpdateRequest details) {
+        Utilisateur existing = findById(id);
+        if (details.getNom() != null) existing.setNom(details.getNom());
+        if (details.getPrenom() != null) existing.setPrenom(details.getPrenom());
+        if (details.getEmail() != null) existing.setEmail(details.getEmail());
+        if (details.getAdresse() != null) existing.setAdresse(details.getAdresse());
+        return utilisateurRepository.save(existing);
     }
 
     /**
