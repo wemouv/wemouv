@@ -89,6 +89,7 @@
 			<version>2.5.0</version>
 		</dependency>
 
+
 		<dependency>
 			<groupId>com.github.therapi</groupId>
 			<artifactId>therapi-runtime-javadoc</artifactId>
