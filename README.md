@@ -5,17 +5,7 @@
 [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=wemouv_wemouv&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=wemouv_wemouv)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=wemouv_wemouv&metric=bugs)](https://sonarcloud.io/summary/new_code?id=wemouv_wemouv)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=wemouv_wemouv&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=wemouv_wemouv)
-
-
-# 🚗 Wemouv - API Back-end (Spring Boot)
-
-Bienvenue sur le code source de l'API REST de **Wemouv**, une application web d'entreprise dédiée à la gestion de la mobilité collaborative (covoiturage) et à la réservation de véhicules de service (flotte interne).
-
-Cette plateforme permet aux collaborateurs d'optimiser leurs déplacements quotidiens ou professionnels, tout en offrant aux administrateurs un contrôle précis sur le parc automobile de l'entreprise.
-
----
-
-## 📌 Fonctionnalités Principales
+# ☕ Wemouv - API (Back-end)
 
 ### 🔐 Authentification & Rôles
 * **Sécurité renforcée** : Authentification basée sur les JSON Web Tokens (JWT) avec Spring Security.
@@ -139,3 +129,4 @@ Le projet intègre une pipeline d'intégration et déploiement continus (CI/CD) 
   * **CodeQL** : Scan de sécurité intégré pour détecter les vulnérabilités.
 * **Taux de Couverture (JaCoCo)** : Analyse de la couverture des tests (seuil minimal fixé à 50%).
 * **Génération de Rapports** : Sauvegarde et publication automatique des rapports de test et couverture (JUnit & JaCoCo) comme artéfacts GitHub.
+Bienvenue sur le code source de l'API Spring Boot du projet Wemouv. 
