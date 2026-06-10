@@ -1,6 +1,7 @@
 package com.diginamic.wemouv.controller;
 
 import com.diginamic.wemouv.entity.VehiculeDeService;
+import com.diginamic.wemouv.enums.Disponibilite;
 import com.diginamic.wemouv.service.VehiculeDeServiceService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -140,5 +141,15 @@ public class VehiculeDeServiceController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
+    }
+
+
+    @PatchMapping("/{id}/statut")
+    public ResponseEntity<Void> changerStatut(
+            @PathVariable Long id,
+            @RequestParam Disponibilite statut) {
+
+        vehiculeDeServiceService.changerStatut(id, statut);
+        return ResponseEntity.ok().build();
     }
 }
