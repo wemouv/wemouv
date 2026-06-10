@@ -16,11 +16,6 @@ import static org.mockito.Mockito.*;
 
 /**
  * Suite de tests unitaires pour {@link ReserverCovoiturage}.
- * <p>
- * Cette classe valide la logique métier de réservation d'un covoiturage,
- * garantissant que les contraintes de disponibilité des places et
- * l'intégrité de la participation sont respectées.
- * </p>
  */
 @ExtendWith(MockitoExtension.class)
 class ReserverCovoiturageTest {
@@ -96,6 +91,10 @@ class ReserverCovoiturageTest {
     void reserver_QuandOrganisateur_DoitLancerException() {
         Long covoiturageId = 1L;
         Long organisateurId = 5L;
+
+        // 💡 AJOUT : Créer et assigner le conducteur pour éviter le NullPointer
+        Utilisateur conducteur = new Utilisateur();
+        conducteur.setId(99L);
 
         Covoiturage covoiturage = new Covoiturage();
         covoiturage.setNbPlacesRestantes(2);

@@ -1,12 +1,15 @@
 package com.diginamic.wemouv.controller;
 
 import com.diginamic.wemouv.dto.AuthResponse;
+import com.diginamic.wemouv.dto.ChangePasswordRequest;
 import com.diginamic.wemouv.dto.LoginRequest;
 import com.diginamic.wemouv.dto.RegisterRequest;
 import com.diginamic.wemouv.entity.Utilisateur;
 import com.diginamic.wemouv.enums.Role;
 import com.diginamic.wemouv.repository.UtilisateurRepository;
 import com.diginamic.wemouv.security.JwtService;
+import com.diginamic.wemouv.service.UtilisateurService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
@@ -42,6 +45,8 @@ public class AuthController {
     /** Dépôt pour vérifier et sauvegarder les utilisateurs lors de l'inscription. */
     private final UtilisateurRepository utilisateurRepository;
 
+    private final UtilisateurService utilisateurService;
+
     /**
      * Constructeur injectant les services et composants de sécurité nécessaires.
      *
@@ -56,13 +61,15 @@ public class AuthController {
             UserDetailsService userDetailsService,
             JwtService jwtService,
             PasswordEncoder passwordEncoder,
-            UtilisateurRepository utilisateurRepository
+            UtilisateurRepository utilisateurRepository,
+            UtilisateurService utilisateurService
     ) {
         this.authManager = authManager;
         this.userDetailsService = userDetailsService;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.utilisateurRepository = utilisateurRepository;
+        this.utilisateurService = utilisateurService;
     }
 
     /**
@@ -75,7 +82,17 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            // Tentative d'authentification via Spring Security
+
+            Utilisateur completUser = utilisateurService.findByEmail(request.getEmail());
+
+
+            if (completUser == null || Boolean.FALSE.equals(completUser.getCompteActif())) {
+                return ResponseEntity
+                        .status(HttpStatus.FORBIDDEN) // 403 Forbidden
+                        .body("Votre compte n'est pas encore activé. Veuillez vérifier vos e-mails.");
+            }
+
+
             authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getEmail(),
@@ -83,14 +100,18 @@ public class AuthController {
                     )
             );
 
-            // Récupération de l'utilisateur certifié et génération du token
+
             UserDetails user = userDetailsService.loadUserByUsername(request.getEmail());
             String token = jwtService.generateToken(user);
 
             return ResponseEntity.ok(new AuthResponse(token));
 
         } catch (AuthenticationException e) {
-            // Si le mot de passe ou l'email est faux, on renvoie une erreur 401 propre
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("Email ou mot de passe incorrect");
+        } catch (RuntimeException e) {
+
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body("Email ou mot de passe incorrect");
@@ -144,4 +165,26 @@ public class AuthController {
                 .status(HttpStatus.CREATED)
                 .body("Utilisateur créé avec succès");
     }
+
+
+
+    @PostMapping("/definir-mot-de-passe")
+    public ResponseEntity<?> definirMotDePasse(@Valid @RequestBody ChangePasswordRequest request) {
+        try {
+            String email = request.email();
+            String token = request.token();
+            String password = request.nouveauMotDePasse();
+
+            Utilisateur user = utilisateurService.findByEmail(email);
+            user.setMotDePasse(passwordEncoder.encode(password));
+            user.setCompteActif(true);
+
+            utilisateurService.update(user.getId(), user);
+
+            return ResponseEntity.ok().body("Mot de passe configuré avec succès !");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
 }

@@ -18,7 +18,7 @@ import jakarta.persistence.*;
  * Un véhicule possède des caractéristiques essentielles telles que :
  * <ul>
  * <li>une immatriculation</li>
- * <li>une marque ({@link Marque}) et une motorisation ({@link Motorisation})</li>
+ * <li>une marque ({@link Marque}), un modèle et une motorisation ({@link Motorisation})</li>
  * <li>un nombre de places et une catégorie ({@link Categorie})</li>
  * <li>un taux d'émission de CO₂ par kilomètre</li>
  * </ul>
@@ -42,6 +42,10 @@ public class Vehicule {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Marque marque;
+
+    /** Modèle commercial du véhicule (ex : Clio, 308, Yaris). */
+    @Column(length = 100)
+    private String modele;
 
     /** Type de motorisation (ex : ESSENCE, DIESEL, ELECTRIQUE). */
     @Enumerated(EnumType.STRING)
@@ -84,6 +88,12 @@ public class Vehicule {
 
     /** @param marque marque du véhicule */
     public void setMarque(Marque marque) { this.marque = marque; }
+
+    /** @return le modèle du véhicule */
+    public String getModele() { return modele; }
+
+    /** @param modele modèle du véhicule */
+    public void setModele(String modele) { this.modele = modele; }
 
     /** @return la motorisation du véhicule */
     public Motorisation getMotorisation() { return motorisation; }
