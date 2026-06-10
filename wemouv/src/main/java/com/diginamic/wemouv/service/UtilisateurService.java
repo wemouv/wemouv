@@ -197,4 +197,13 @@ public class UtilisateurService {
                 })
                 .toList();
     }
+    /**
+     * Sauvegarde directe d'un utilisateur (utilisé pour les mises à jour internes).
+     *
+     * @param utilisateur l'entité à persister
+     * @return l'utilisateur sauvegardé
+     */
+    public Utilisateur save(Utilisateur utilisateur) {
+        return utilisateurRepository.save(utilisateur);
+    }
 }

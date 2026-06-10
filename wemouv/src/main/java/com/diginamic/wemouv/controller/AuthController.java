@@ -172,14 +172,13 @@ public class AuthController {
     public ResponseEntity<?> definirMotDePasse(@Valid @RequestBody ChangePasswordRequest request) {
         try {
             String email = request.email();
-            String token = request.token();
             String password = request.nouveauMotDePasse();
 
             Utilisateur user = utilisateurService.findByEmail(email);
             user.setMotDePasse(passwordEncoder.encode(password));
             user.setCompteActif(true);
 
-            utilisateurService.update(user.getId(), user);
+            utilisateurService.save(user); // ← sauvegarder directement
 
             return ResponseEntity.ok().body("Mot de passe configuré avec succès !");
         } catch (Exception e) {
