@@ -1,12 +1,13 @@
 package com.diginamic.wemouv.service;
 
+import com.diginamic.wemouv.dto.ReservationModificationRequest;
 import com.diginamic.wemouv.dto.ReservationRequest;
 import com.diginamic.wemouv.entity.Reservation;
 import com.diginamic.wemouv.entity.Utilisateur;
-import com.diginamic.wemouv.entity.Vehicule;
+import com.diginamic.wemouv.entity.VehiculeDeService;
 import com.diginamic.wemouv.enums.Statut;
 import com.diginamic.wemouv.repository.ReservationRepository;
-import com.diginamic.wemouv.repository.VehiculeRepository;
+import com.diginamic.wemouv.repository.VehiculeDeServiceRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,32 +25,23 @@ import static org.mockito.Mockito.*;
 
 /**
  * Suite de tests unitaires pour {@link ReservationService}.
- * <p>
- * Cette classe valide les règles métier cruciales liées à la réservation de véhicules :
- * vérification des chevauchements de dates, gestion de la disponibilité des véhicules
- * et intégrité des entités lors des mises à jour.
- * </p>
  */
 @ExtendWith(MockitoExtension.class)
 class ReservationServiceTest {
 
     @Mock private ReservationRepository reservationRepository;
     @Mock private UtilisateurService utilisateurService;
-    @Mock private VehiculeRepository vehiculeRepository;
+    @Mock private VehiculeDeServiceRepository vehiculeDeServiceRepository;
 
     @InjectMocks private ReservationService reservationService;
 
     private Reservation reservation;
-    private Vehicule vehicule;
+    private VehiculeDeService vehicule;
     private Utilisateur utilisateur;
 
-    /**
-     * Initialisation du contexte de test avec un véhicule, un utilisateur
-     * et une réservation existante pour simuler les conflits de planning.
-     */
     @BeforeEach
     void setUp() {
-        vehicule = new Vehicule();
+        vehicule = new VehiculeDeService();
         vehicule.setId(1L);
 
         utilisateur = new Utilisateur();
@@ -75,7 +67,7 @@ class ReservationServiceTest {
         request.setDateFin(LocalDateTime.now().plusDays(6));
 
         when(utilisateurService.findByEmail(anyString())).thenReturn(utilisateur);
-        when(vehiculeRepository.findById(1L)).thenReturn(Optional.of(vehicule));
+        when(vehiculeDeServiceRepository.findById(1L)).thenReturn(Optional.of(vehicule));
         when(reservationRepository.findByVehiculeId(1L)).thenReturn(Collections.emptyList());
         when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArguments()[0]);
 
@@ -98,7 +90,7 @@ class ReservationServiceTest {
         request.setDateFin(reservation.getDateFin());
 
         when(utilisateurService.findByEmail(anyString())).thenReturn(utilisateur);
-        when(vehiculeRepository.findById(1L)).thenReturn(Optional.of(vehicule));
+        when(vehiculeDeServiceRepository.findById(1L)).thenReturn(Optional.of(vehicule));
         when(reservationRepository.findByVehiculeId(1L)).thenReturn(Collections.singletonList(reservation));
 
         assertThrows(RuntimeException.class, () -> reservationService.create(request, "test@test.com"));
@@ -110,19 +102,89 @@ class ReservationServiceTest {
      */
     @Test
     void update_DoitFusionnerDonnees_SansEffacerUtilisateur() {
-        Reservation details = new Reservation();
+        ReservationModificationRequest details = new ReservationModificationRequest();
         details.setDateDebut(LocalDateTime.now().plusDays(10));
         details.setDateFin(LocalDateTime.now().plusDays(11));
-        details.setStatut(Statut.ANNULE);
+        details.setVehiculeId(1L);
 
         when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+        when(vehiculeDeServiceRepository.findById(1L)).thenReturn(Optional.of(vehicule));
         when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArguments()[0]);
 
         Reservation updated = reservationService.update(1L, details);
 
         assertEquals(details.getDateDebut(), updated.getDateDebut());
-        assertEquals(Statut.ANNULE, updated.getStatut());
         assertNotNull(updated.getUtilisateur(), "L'utilisateur doit être préservé après mise à jour");
         verify(reservationRepository).save(reservation);
+    }
+
+    @Test
+    void findAll_DoitRetournerListe() {
+        when(reservationRepository.findAll()).thenReturn(java.util.List.of(reservation));
+        java.util.List<Reservation> result = reservationService.findAll();
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void findById_QuandExiste_DoitRetournerReservation() {
+        when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+        Reservation result = reservationService.findById(1L);
+        assertNotNull(result);
+    }
+
+    @Test
+    void findById_QuandExistePas_DoitLancerException() {
+        when(reservationRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> reservationService.findById(1L));
+    }
+
+    @Test
+    void annuler_DoitPasserStatutAAnnule() {
+        when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        Reservation result = reservationService.annuler(1L);
+
+        assertEquals(Statut.ANNULE, result.getStatut());
+        verify(reservationRepository).save(reservation);
+    }
+
+    @Test
+    void confirmer_DoitPasserStatutAConfirme() {
+        reservation.setStatut(Statut.ANNULE);
+        when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        Reservation result = reservationService.confirmer(1L);
+
+        assertEquals(Statut.CONFIRME, result.getStatut());
+        verify(reservationRepository).save(reservation);
+    }
+
+    @Test
+    void delete_QuandExiste_DoitSupprimer() {
+        when(reservationRepository.existsById(1L)).thenReturn(true);
+        reservationService.delete(1L);
+        verify(reservationRepository).deleteById(1L);
+    }
+
+    @Test
+    void delete_QuandExistePas_DoitLancerException() {
+        when(reservationRepository.existsById(1L)).thenReturn(false);
+        assertThrows(RuntimeException.class, () -> reservationService.delete(1L));
+    }
+
+    @Test
+    void findByUtilisateur_DoitRetournerListe() {
+        when(reservationRepository.findByUtilisateurId(1L)).thenReturn(java.util.List.of(reservation));
+        java.util.List<Reservation> result = reservationService.findByUtilisateur(1L);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void findByVehicule_DoitRetournerListe() {
+        when(reservationRepository.findByVehiculeId(1L)).thenReturn(java.util.List.of(reservation));
+        java.util.List<Reservation> result = reservationService.findByVehicule(1L);
+        assertEquals(1, result.size());
     }
 }

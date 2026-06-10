@@ -1,11 +1,13 @@
 package com.diginamic.wemouv.service;
 
+import com.diginamic.wemouv.dto.RegisterRequest;
+import com.diginamic.wemouv.dto.UtilisateurUpdateRequest;
 import com.diginamic.wemouv.entity.Utilisateur;
+import com.diginamic.wemouv.enums.Role;
 import com.diginamic.wemouv.repository.UtilisateurRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 import java.util.List;
 import java.util.UUID;
@@ -27,11 +29,15 @@ public class UtilisateurService {
     private final PasswordEncoder passwordEncoder;
 
     /**
-     * Constructeur avec injection du dépôt des utilisateurs.
+     * Constructeur avec injection des dépendances requises.
      *
      * @param utilisateurRepository le dépôt pour interagir avec la table utilisateur
+     * @param emailService le service d'envoi d'emails
+     * @param passwordEncoder l'encodeur de mot de passe
      */
-    public UtilisateurService(UtilisateurRepository utilisateurRepository, EmailService emailService, PasswordEncoder passwordEncoder) {
+    public UtilisateurService(UtilisateurRepository utilisateurRepository,
+                              EmailService emailService,
+                              PasswordEncoder passwordEncoder) {
         this.utilisateurRepository = utilisateurRepository;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
@@ -72,25 +78,34 @@ public class UtilisateurService {
 
     /**
      * Enregistre un nouvel utilisateur en base de données.
+     * <p>
+     * Génère un token temporaire, envoie un email d'activation
+     * et crée le compte avec un statut inactif.
+     * </p>
      *
-     * @param utilisateur l'entité contenant les informations du compte
+     * @param request le DTO contenant les informations du nouveau compte
      * @return l'utilisateur sauvegardé avec son ID généré
      */
-    public Utilisateur create(Utilisateur utilisateur) {
-        // Générer une chaîne aléatoire unique servant de jeton/mot de passe temporaire ( TO DO - trois changements de mot de passe, 2 inutiles )
+
+    public Utilisateur create(RegisterRequest request) {
         String tokenTemporaire = UUID.randomUUID().toString();
 
-        // Assigner ce mot de passe temporaire
+        Utilisateur utilisateur = new Utilisateur();
+        utilisateur.setNom(request.getNom());
+        utilisateur.setPrenom(request.getPrenom());
+        utilisateur.setEmail(request.getEmail());
+        utilisateur.setAdresse(request.getAdresse());
+        if (request.getRole() != null) {
+            utilisateur.setRole(Role.valueOf(request.getRole().toUpperCase()));
+        }
         utilisateur.setMotDePasse(passwordEncoder.encode(tokenTemporaire));
-        utilisateur.setCompteActif(false); // Le compte reste inactif tant qu'il n'a pas configuré son mot de passe
+        utilisateur.setCompteActif(false);
 
-        // 3. Sauvegarder l'utilisateur en BDD
         Utilisateur nouvelUtilisateur = utilisateurRepository.save(utilisateur);
 
-        // 4. Construire le lien Angular contenant le token
-        String lienConfiguration = "http://localhost:4200/initialiser-mot-de-passe?token=" + tokenTemporaire + "&email=" + nouvelUtilisateur.getEmail();
+        String lienConfiguration = "http://localhost:4200/initialiser-mot-de-passe?token="
+                + tokenTemporaire + "&email=" + nouvelUtilisateur.getEmail();
 
-        // 5. Envoyer le mail
         String sujet = "WeMouv : Activation de votre compte collaborateur";
         String corps = "Bonjour " + nouvelUtilisateur.getPrenom() + ",\n\n"
                 + "Un compte a été créé pour vous sur l'application WeMouv.\n"
@@ -98,9 +113,7 @@ public class UtilisateurService {
                 + lienConfiguration + "\n\n"
                 + "À bientôt,\nL'équipe WeMouv.";
 
-
         emailService.sendMail(nouvelUtilisateur.getEmail(), sujet, corps);
-        System.out.println("Mail envoyé avec succès à " + nouvelUtilisateur.getEmail());
 
         return nouvelUtilisateur;
     }
@@ -114,16 +127,13 @@ public class UtilisateurService {
      * @throws RuntimeException si l'utilisateur est introuvable
      */
     @Transactional
-    public Utilisateur update(Long id, Utilisateur details) {
-        Utilisateur utilisateurExistant = utilisateurRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable avec l'id : " + id));
-
-        utilisateurExistant.setNom(details.getNom());
-        utilisateurExistant.setPrenom(details.getPrenom());
-        utilisateurExistant.setEmail(details.getEmail());
-        utilisateurExistant.setAdresse(details.getAdresse());
-
-        return utilisateurRepository.save(utilisateurExistant);
+    public Utilisateur update(Long id, UtilisateurUpdateRequest details) {
+        Utilisateur existing = findById(id);
+        if (details.getNom() != null) existing.setNom(details.getNom());
+        if (details.getPrenom() != null) existing.setPrenom(details.getPrenom());
+        if (details.getEmail() != null) existing.setEmail(details.getEmail());
+        if (details.getAdresse() != null) existing.setAdresse(details.getAdresse());
+        return utilisateurRepository.save(existing);
     }
 
     /**
@@ -149,7 +159,6 @@ public class UtilisateurService {
     public void softDelete(Long id) {
         Utilisateur u = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable pour désactivation"));
-
         u.setCompteActif(false);
         utilisateurRepository.save(u);
     }
@@ -164,29 +173,26 @@ public class UtilisateurService {
     public void reactivate(Long id) {
         Utilisateur u = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable pour réactivation"));
-
         u.setCompteActif(true);
         utilisateurRepository.save(u);
     }
 
     /**
-     * méthode chargée de rechercher des utilisateurs par terme précis
-     * @param terme
-     * @return liste d'utilisateurs filtrée
+     * Recherche des utilisateurs par terme (nom, prénom ou email).
+     *
+     * @param terme le terme de recherche
+     * @return la liste des utilisateurs correspondants
      */
     public List<Utilisateur> search(String terme) {
         if (terme == null || terme.isBlank()) {
             return findAll();
         }
-
         String termeMinuscule = terme.toLowerCase();
-
         return findAll().stream()
                 .filter(u -> {
                     boolean matchEmail = u.getEmail() != null && u.getEmail().toLowerCase().contains(termeMinuscule);
                     boolean matchNom = u.getNom() != null && u.getNom().toLowerCase().contains(termeMinuscule);
                     boolean matchPrenom = u.getPrenom() != null && u.getPrenom().toLowerCase().contains(termeMinuscule);
-
                     return matchEmail || matchNom || matchPrenom;
                 })
                 .toList();

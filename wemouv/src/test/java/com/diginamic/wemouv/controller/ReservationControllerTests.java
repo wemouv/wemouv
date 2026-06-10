@@ -1,5 +1,6 @@
 package com.diginamic.wemouv.controller;
 
+import com.diginamic.wemouv.dto.ReservationModificationRequest;
 import com.diginamic.wemouv.dto.ReservationRequest;
 import com.diginamic.wemouv.entity.Reservation;
 import com.diginamic.wemouv.service.ListeReservationVehicule;
@@ -108,7 +109,7 @@ class ReservationControllerTests {
 
     @Test
     void updateReservation_QuandExiste_DoitRetourner200() {
-        Reservation details = new Reservation();
+        ReservationModificationRequest details = new ReservationModificationRequest();
         Reservation updated = new Reservation();
         updated.setId(2L);
         when(reservationService.update(2L, details)).thenReturn(updated);
@@ -121,7 +122,7 @@ class ReservationControllerTests {
 
     @Test
     void updateReservation_QuandRegleMetierViolée_DoitRetourner400() {
-        Reservation details = new Reservation();
+        ReservationModificationRequest details = new ReservationModificationRequest();
         when(reservationService.update(2L, details))
                 .thenThrow(new IllegalStateException("Chevauchement de dates"));
 
@@ -133,7 +134,7 @@ class ReservationControllerTests {
 
     @Test
     void updateReservation_QuandIntrouvable_DoitRetourner404() {
-        Reservation details = new Reservation();
+        ReservationModificationRequest details = new ReservationModificationRequest();
         when(reservationService.update(2L, details))
                 .thenThrow(new RuntimeException("Introuvable"));
 
