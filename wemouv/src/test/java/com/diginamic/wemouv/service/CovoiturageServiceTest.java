@@ -20,11 +20,6 @@ import static org.mockito.Mockito.*;
 
 /**
  * Suite de tests unitaires pour {@link CovoiturageService}.
- * <p>
- * Cette classe valide la logique métier de création, mise à jour et consultation
- * des covoiturages. Elle utilise Mockito pour isoler le service des accès
- * à la base de données et des services tiers (e-mails).
- * </p>
  */
 @ExtendWith(MockitoExtension.class)
 class CovoiturageServiceTest {
@@ -42,7 +37,6 @@ class CovoiturageServiceTest {
 
     /**
      * Initialisation des données de test avant chaque exécution.
-     * Crée un utilisateur et un covoiturage de référence avec une participation.
      */
     @BeforeEach
     void setUp() {
@@ -53,6 +47,7 @@ class CovoiturageServiceTest {
         covoiturage = new Covoiturage();
         covoiturage.setId(1L);
         covoiturage.setOrganisateur(utilisateur);
+        covoiturage.setNbPlacesRestantes(3);
 
         ParticipationCovoiturage participation = new ParticipationCovoiturage();
         participation.setUtilisateur(utilisateur);
@@ -62,8 +57,7 @@ class CovoiturageServiceTest {
     }
 
     /**
-     * Vérifie que la création d'un covoiturage sauvegarde bien l'entité
-     * en s'assurant que le conducteur, l'organisateur et le véhicule sont valides.
+     * Vérifie que la création d'un covoiturage sauvegarde bien l'entité.
      */
     @Test
     void create_DoitSauvegarderCovoiturage_AvecReferencesValides() {
@@ -71,6 +65,8 @@ class CovoiturageServiceTest {
         request.setVehiculeId(1L);
         request.setOrganisateurId(1L);
         request.setConducteurId(1L);
+        request.setNbPlacesRestantes(3);
+        request.setNbPlacesInitial(3);
 
         when(vehiculeRepository.findById(1L)).thenReturn(Optional.of(new Vehicule()));
         when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
@@ -83,8 +79,7 @@ class CovoiturageServiceTest {
     }
 
     /**
-     * Vérifie qu'une mise à jour (update) entraîne l'envoi de notifications par e-mail
-     * aux participants concernés (organisateur et passagers).
+     * Vérifie qu'une mise à jour (update) entraîne l'envoi de notifications par e-mail.
      */
     @Test
     void update_DoitEnvoyerEmails_AOrganisateurEtPassagers() {
@@ -92,15 +87,20 @@ class CovoiturageServiceTest {
         request.setVehiculeId(1L);
         request.setOrganisateurId(1L);
         request.setConducteurId(1L);
+        request.setNbPlacesRestantes(3);
+        request.setNbPlacesInitial(3);
 
         when(covoiturageRepository.findById(1L)).thenReturn(Optional.of(covoiturage));
         when(vehiculeRepository.findById(1L)).thenReturn(Optional.of(new Vehicule()));
         when(utilisateurRepository.findById(anyLong())).thenReturn(Optional.of(utilisateur));
+
+        // 💡 CORRECTION : getArguments()[0] car la méthode save() ne prend qu'un seul paramètre
         when(covoiturageRepository.save(any(Covoiturage.class))).thenAnswer(i -> i.getArguments()[0]);
 
         covoiturageService.update(1L, request);
 
-        verify(emailService, atLeast(2)).sendMail(anyString(), anyString(), anyString());
+        // Vérifie que la méthode sendMail a bien été appelée
+        verify(emailService, atLeast(1)).sendMailGroup(any(String[].class), anyString(), anyString());
     }
 
     /**
