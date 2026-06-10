@@ -63,6 +63,13 @@ public class UtilisateurController {
         }
     }
 
+    /**
+     * Met à jour les informations du profil d'un collaborateur.
+     *
+     * @param id l'identifiant de l'utilisateur à modifier
+     * @param details le DTO contenant les nouvelles données de profil
+     * @return un {@link ResponseEntity} contenant l'utilisateur mis à jour (HTTP 200)
+     */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUtilisateur(
             @PathVariable("id") Long id,
@@ -75,6 +82,12 @@ public class UtilisateurController {
         }
     }
 
+    /**
+     * Désactive le compte d'un collaborateur (Soft Delete).
+     *
+     * @param id l'identifiant de l'utilisateur à désactiver
+     * @return HTTP 204 si réussi, HTTP 404 si introuvable
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUtilisateur(@PathVariable("id") Long id) {
         try {
@@ -85,9 +98,27 @@ public class UtilisateurController {
         }
     }
 
+    /**
+     * Réactive un collaborateur désactivé.
+     *
+     * @param id identifiant du collaborateur à réactiver
+     * @return HTTP 204 si réussi
+     */
     @DeleteMapping("reactivate/{id}")
     public ResponseEntity<Void> reactivateUtilisateur(@PathVariable Long id) {
         utilisateurService.reactivate(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Recherche des utilisateurs par terme (nom, prénom ou email).
+     *
+     * @param terme le terme de recherche
+     * @return la liste des utilisateurs correspondants
+     */
+    @GetMapping("/filtrer/search")
+    public ResponseEntity<List<Utilisateur>> searchUtilisateurs(@RequestParam("q") String terme) {
+        List<Utilisateur> resultats = utilisateurService.search(terme);
+        return ResponseEntity.ok(resultats);
     }
 }
