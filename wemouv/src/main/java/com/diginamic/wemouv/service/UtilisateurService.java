@@ -80,14 +80,14 @@ public class UtilisateurService {
         // Générer une chaîne aléatoire unique servant de jeton/mot de passe temporaire ( TO DO - trois changements de mot de passe, 2 inutiles )
         String tokenTemporaire = UUID.randomUUID().toString();
 
-        // Assigner ce mot de passe temporaire (idéalement haché en BDD si ton filtre de login l'exige)
+        // Assigner ce mot de passe temporaire
         utilisateur.setMotDePasse(passwordEncoder.encode(tokenTemporaire));
         utilisateur.setCompteActif(false); // Le compte reste inactif tant qu'il n'a pas configuré son mot de passe
 
         // 3. Sauvegarder l'utilisateur en BDD
         Utilisateur nouvelUtilisateur = utilisateurRepository.save(utilisateur);
 
-        // 4. Construire le lien Angular contenant le token (ou l'ID, selon ta stratégie de token de reset)
+        // 4. Construire le lien Angular contenant le token
         String lienConfiguration = "http://localhost:4200/initialiser-mot-de-passe?token=" + tokenTemporaire + "&email=" + nouvelUtilisateur.getEmail();
 
         // 5. Envoyer le mail
