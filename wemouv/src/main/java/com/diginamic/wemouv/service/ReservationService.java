@@ -102,7 +102,8 @@ public class ReservationService {
         reservation.setDateFin(request.getDateFin());
         reservation.setVehicule(vehicule);
         reservation.setUtilisateur(utilisateur);
-        reservation.setStatut(Statut.CONFIRME);
+        reservation.setStatut(Statut.EN_ATTENTE);//  une nouvelle resa de vehicule et par defaut en attente de
+                                                    // confirmation par l'admin
 
         return reservationRepository.save(reservation);
     }
