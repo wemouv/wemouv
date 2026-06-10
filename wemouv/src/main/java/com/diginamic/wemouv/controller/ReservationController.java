@@ -4,6 +4,7 @@ import com.diginamic.wemouv.dto.ReservationModificationRequest;
 import com.diginamic.wemouv.dto.ReservationRequest;
 import com.diginamic.wemouv.entity.Reservation;
 import com.diginamic.wemouv.service.ListeReservationVehicule;
+import com.diginamic.wemouv.service.ModifierReservationVehicule;
 import com.diginamic.wemouv.service.ReservationService;
 import com.diginamic.wemouv.service.SupprimerReservationVehicule;
 import org.springframework.http.HttpStatus;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Contrôleur REST pour la gestion des réservations de véhicules de service.
+ * Contrôleur REST pour la gestion des réser vations de véhicules de service.
  * <p>
  * Ce contrôleur expose les API permettant de gérer le cycle de vie des réservations
  * (création, modification, annulation) ainsi que la consultation des historiques
@@ -31,19 +32,23 @@ public class ReservationController {
     /** Le service dédié à la consultation et au filtrage des réservations de véhicules. */
     private final ListeReservationVehicule listeReservationVehicule;
     private final SupprimerReservationVehicule supprimerReservationVehicule;
-
+    private final ModifierReservationVehicule modifierReservationVehicule;
     /**
      * Constructeur avec injection des services dédiés.
      *
      * @param reservationService le service gérant la logique métier des réservations
      * @param listeReservationVehicule le service gérant la lecture et le listage des réservations
      */
-    public ReservationController(ReservationService reservationService,
-                                 ListeReservationVehicule listeReservationVehicule,
-                                 SupprimerReservationVehicule supprimerReservationVehicule) {
+    public ReservationController(
+            ReservationService reservationService,
+            ListeReservationVehicule listeReservationVehicule,
+            SupprimerReservationVehicule supprimerReservationVehicule,
+            ModifierReservationVehicule modifierReservationVehicule) {
+
         this.reservationService = reservationService;
         this.listeReservationVehicule = listeReservationVehicule;
         this.supprimerReservationVehicule = supprimerReservationVehicule;
+        this.modifierReservationVehicule = modifierReservationVehicule;
     }
 
     /**
@@ -139,7 +144,23 @@ public class ReservationController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
-
+    /**
+     * Modifie une réservation (dates et/ou véhicule).
+     * Réservé aux réservations en statut EN_ATTENTE.
+     */
+    @PutMapping("/{id}/modifier")
+    public ResponseEntity<?> modifierReservation(
+            @PathVariable("id") Long id,
+            @RequestBody ReservationModificationRequest request) {
+        try {
+            Reservation updated = modifierReservationVehicule.modifier(id, request);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
     /**
      * Annule et supprime définitivement une réservation du système.
      *
