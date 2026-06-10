@@ -1,6 +1,7 @@
 package com.diginamic.wemouv.controller;
 
 import com.diginamic.wemouv.dto.AuthResponse;
+import com.diginamic.wemouv.dto.ChangePasswordRequest;
 import com.diginamic.wemouv.dto.LoginRequest;
 import com.diginamic.wemouv.dto.RegisterRequest;
 import com.diginamic.wemouv.entity.Utilisateur;
@@ -190,5 +191,97 @@ class AuthControllerTests {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Rôle invalide", response.getBody());
         verify(utilisateurRepository, never()).save(any(Utilisateur.class));
+    }
+
+    @Test
+    void login_QuandCompteInactif_DoitRetourner403() {
+        // ARRANGE
+        LoginRequest request = new LoginRequest();
+        request.setEmail("user@test.com");
+        request.setPassword("secret");
+
+        Utilisateur mockUser = new Utilisateur();
+        mockUser.setEmail("user@test.com");
+        mockUser.setCompteActif(false);
+        when(utilisateurService.findByEmail("user@test.com")).thenReturn(mockUser);
+
+        // ACT
+        ResponseEntity<?> response = authController.login(request);
+
+        // ASSERT
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertEquals("Votre compte n'est pas encore activé. Veuillez vérifier vos e-mails.", response.getBody());
+    }
+
+    @Test
+    void login_QuandUtilisateurNull_DoitRetourner403() {
+        // ARRANGE
+        LoginRequest request = new LoginRequest();
+        request.setEmail("unknown@test.com");
+        request.setPassword("secret");
+
+        when(utilisateurService.findByEmail("unknown@test.com")).thenReturn(null);
+
+        // ACT
+        ResponseEntity<?> response = authController.login(request);
+
+        // ASSERT
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertEquals("Votre compte n'est pas encore activé. Veuillez vérifier vos e-mails.", response.getBody());
+    }
+
+    @Test
+    void login_QuandRuntimeExceptionInattendue_DoitRetourner401() {
+        // ARRANGE
+        LoginRequest request = new LoginRequest();
+        request.setEmail("user@test.com");
+        request.setPassword("secret");
+
+        when(utilisateurService.findByEmail("user@test.com")).thenThrow(new RuntimeException("Erreur de base de données"));
+
+        // ACT
+        ResponseEntity<?> response = authController.login(request);
+
+        // ASSERT
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertEquals("Email ou mot de passe incorrect", response.getBody());
+    }
+
+    @Test
+    void definirMotDePasse_QuandValide_DoitRetourner200() {
+        // ARRANGE
+        ChangePasswordRequest request = new ChangePasswordRequest("user@test.com", "dummy_token", "newPassword");
+        Utilisateur mockUser = new Utilisateur();
+        mockUser.setEmail("user@test.com");
+        mockUser.setCompteActif(false);
+
+        when(utilisateurService.findByEmail("user@test.com")).thenReturn(mockUser);
+        when(passwordEncoder.encode("newPassword")).thenReturn("encodedNewPassword");
+
+        // ACT
+        ResponseEntity<?> response = authController.definirMotDePasse(request);
+
+        // ASSERT
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Mot de passe configuré avec succès !", response.getBody());
+        assertTrue(mockUser.getCompteActif());
+        assertEquals("encodedNewPassword", mockUser.getMotDePasse());
+        verify(utilisateurService).save(mockUser);
+    }
+
+    @Test
+    void definirMotDePasse_QuandException_DoitRetourner400() {
+        // ARRANGE
+        ChangePasswordRequest request = new ChangePasswordRequest("user@test.com", "dummy_token", "newPassword");
+
+        when(utilisateurService.findByEmail("user@test.com")).thenThrow(new RuntimeException("Utilisateur introuvable"));
+
+        // ACT
+        ResponseEntity<?> response = authController.definirMotDePasse(request);
+
+        // ASSERT
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Utilisateur introuvable", response.getBody());
+        verify(utilisateurService, never()).save(any(Utilisateur.class));
     }
 }
