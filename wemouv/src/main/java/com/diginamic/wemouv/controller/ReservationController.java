@@ -162,6 +162,19 @@ public class ReservationController {
         }
     }
     /**
+     * Valide une demande de réservation (admin).
+     * Passe le statut de EN_ATTENTE à CONFIRME.
+     */
+    @PatchMapping("/{id}/confirmer")
+    public ResponseEntity<?> confirmerReservation(@PathVariable("id") Long id) {
+        try {
+            Reservation updated = reservationService.confirmer(id);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+    /**
      * Annule et supprime définitivement une réservation du système.
      *
      * @param id l'identifiant de la réservation à supprimer
