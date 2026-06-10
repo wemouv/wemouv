@@ -3,6 +3,7 @@ package com.diginamic.wemouv.service;
 import com.diginamic.wemouv.dto.RegisterRequest;
 import com.diginamic.wemouv.dto.UtilisateurUpdateRequest;
 import com.diginamic.wemouv.entity.Utilisateur;
+import com.diginamic.wemouv.enums.Role;
 import com.diginamic.wemouv.repository.UtilisateurRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -162,6 +163,147 @@ class UtilisateurServiceTest {
         utilisateurService.reactivate(1L);
 
         assertTrue(u.getCompteActif());
+        verify(utilisateurRepository).save(u);
+    }
+
+    @Test
+    void create_AvecRole_DoitSauvegarderAvecRole() {
+        RegisterRequest request = new RegisterRequest();
+        request.setNom("Dupont");
+        request.setPrenom("Jean");
+        request.setEmail("jean@test.com");
+        request.setAdresse("1 rue de Paris");
+        request.setRole("ADMIN");
+
+        Utilisateur saved = new Utilisateur();
+        saved.setEmail("jean@test.com");
+
+        when(passwordEncoder.encode(any())).thenReturn("encodedPassword");
+        when(utilisateurRepository.save(any(Utilisateur.class))).thenAnswer(i -> {
+            Utilisateur arg = i.getArgument(0);
+            assertEquals(Role.ADMIN, arg.getRole());
+            return saved;
+        });
+        doNothing().when(emailService).sendMail(any(), any(), any());
+
+        Utilisateur created = utilisateurService.create(request);
+
+        assertNotNull(created);
+        verify(utilisateurRepository).save(any(Utilisateur.class));
+    }
+
+    @Test
+    void update_AvecTousChamps_DoitMettreAJourEtSauvegarder() {
+        Long id = 1L;
+        Utilisateur existing = new Utilisateur();
+        existing.setId(id);
+        existing.setNom("AncienNom");
+        existing.setPrenom("AncienPrenom");
+        existing.setEmail("ancien@test.com");
+        existing.setAdresse("AncienneAdresse");
+
+        UtilisateurUpdateRequest details = new UtilisateurUpdateRequest();
+        details.setNom("NouveauNom");
+        details.setPrenom("NouveauPrenom");
+        details.setEmail("nouveau@test.com");
+        details.setAdresse("NouvelleAdresse");
+
+        when(utilisateurRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(utilisateurRepository.save(existing)).thenReturn(existing);
+
+        Utilisateur updated = utilisateurService.update(id, details);
+
+        assertEquals("NouveauNom", updated.getNom());
+        assertEquals("NouveauPrenom", updated.getPrenom());
+        assertEquals("nouveau@test.com", updated.getEmail());
+        assertEquals("NouvelleAdresse", updated.getAdresse());
+        verify(utilisateurRepository).save(existing);
+    }
+
+    @Test
+    void update_AvecCertainsChampsNull_DoitMettreAJourUniquementNonNull() {
+        Long id = 1L;
+        Utilisateur existing = new Utilisateur();
+        existing.setId(id);
+        existing.setNom("AncienNom");
+        existing.setPrenom("AncienPrenom");
+        existing.setEmail("ancien@test.com");
+        existing.setAdresse("AncienneAdresse");
+
+        UtilisateurUpdateRequest details = new UtilisateurUpdateRequest();
+        // prenom et adresse restent null, nom et email sont non-null
+        details.setNom("NouveauNom");
+        details.setEmail("nouveau@test.com");
+
+        when(utilisateurRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(utilisateurRepository.save(existing)).thenReturn(existing);
+
+        Utilisateur updated = utilisateurService.update(id, details);
+
+        assertEquals("NouveauNom", updated.getNom());
+        assertEquals("AncienPrenom", updated.getPrenom()); // inchangé
+        assertEquals("nouveau@test.com", updated.getEmail());
+        assertEquals("AncienneAdresse", updated.getAdresse()); // inchangé
+        verify(utilisateurRepository).save(existing);
+    }
+
+    @Test
+    void search_QuandTermeNullOuVide_DoitRetournerTout() {
+        Utilisateur u1 = new Utilisateur();
+        when(utilisateurRepository.findAll()).thenReturn(List.of(u1));
+
+        List<Utilisateur> resultNull = utilisateurService.search(null);
+        List<Utilisateur> resultBlank = utilisateurService.search("   ");
+
+        assertEquals(1, resultNull.size());
+        assertEquals(1, resultBlank.size());
+        verify(utilisateurRepository, times(2)).findAll();
+    }
+
+    @Test
+    void search_QuandTermeCorrespond_DoitFiltrer() {
+        Utilisateur u1 = new Utilisateur();
+        u1.setEmail("jean.dupont@test.com");
+        u1.setNom("Dupont");
+        u1.setPrenom("Jean");
+
+        Utilisateur u2 = new Utilisateur(); // tout à null pour valider les null checks
+        
+        Utilisateur u3 = new Utilisateur();
+        u3.setEmail("martin@test.com");
+        u3.setNom("Martin");
+        u3.setPrenom("Paul");
+
+        when(utilisateurRepository.findAll()).thenReturn(Arrays.asList(u1, u2, u3));
+
+        // Recherche par email
+        List<Utilisateur> matchEmail = utilisateurService.search("dupont");
+        assertEquals(1, matchEmail.size());
+        assertEquals(u1, matchEmail.get(0));
+
+        // Recherche par nom
+        List<Utilisateur> matchNom = utilisateurService.search("Martin");
+        assertEquals(1, matchNom.size());
+        assertEquals(u3, matchNom.get(0));
+
+        // Recherche par prenom
+        List<Utilisateur> matchPrenom = utilisateurService.search("jean");
+        assertEquals(1, matchPrenom.size());
+        assertEquals(u1, matchPrenom.get(0));
+
+        // Recherche sans correspondance
+        List<Utilisateur> noMatch = utilisateurService.search("unknown");
+        assertTrue(noMatch.isEmpty());
+    }
+
+    @Test
+    void save_DoitAppelerRepository() {
+        Utilisateur u = new Utilisateur();
+        when(utilisateurRepository.save(u)).thenReturn(u);
+
+        Utilisateur result = utilisateurService.save(u);
+
+        assertEquals(u, result);
         verify(utilisateurRepository).save(u);
     }
 }

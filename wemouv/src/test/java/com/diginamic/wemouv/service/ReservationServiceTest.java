@@ -187,4 +187,20 @@ class ReservationServiceTest {
         java.util.List<Reservation> result = reservationService.findByVehicule(1L);
         assertEquals(1, result.size());
     }
+
+    @Test
+    void update_QuandCertainsChampsSontNull_DoitMettreAJourUniquementChampsNonNull() {
+        ReservationModificationRequest details = new ReservationModificationRequest();
+        // dateDebut, dateFin et vehiculeId restent null
+
+        when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        Reservation updated = reservationService.update(1L, details);
+
+        assertEquals(reservation.getDateDebut(), updated.getDateDebut());
+        assertEquals(reservation.getDateFin(), updated.getDateFin());
+        assertEquals(reservation.getVehicule(), updated.getVehicule());
+        verify(reservationRepository).save(reservation);
+    }
 }

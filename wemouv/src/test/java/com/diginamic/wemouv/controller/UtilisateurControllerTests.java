@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -128,5 +129,55 @@ class UtilisateurControllerTests {
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(utilisateurService).reactivate(4L);
+    }
+
+    @Test
+    void getCurrentUser_QuandValide_DoitRetourner200() {
+        Authentication authentication = mock(Authentication.class);
+        Utilisateur user = new Utilisateur();
+        user.setEmail("user@test.com");
+        
+        when(authentication.getName()).thenReturn("user@test.com");
+        when(utilisateurService.findByEmail("user@test.com")).thenReturn(user);
+
+        ResponseEntity<?> response = controller.getCurrentUser(authentication);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertSame(user, response.getBody());
+    }
+
+    @Test
+    void getCurrentUser_QuandException_DoitRetourner404() {
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("user@test.com");
+        when(utilisateurService.findByEmail("user@test.com")).thenThrow(new RuntimeException("Introuvable"));
+
+        ResponseEntity<?> response = controller.getCurrentUser(authentication);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Introuvable", response.getBody());
+    }
+
+    @Test
+    void createUtilisateur_QuandException_DoitRetourner400() {
+        RegisterRequest request = new RegisterRequest();
+        when(utilisateurService.create(request)).thenThrow(new RuntimeException("Erreur de création"));
+
+        ResponseEntity<?> response = controller.createUtilisateur(request);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Erreur de création", response.getBody());
+    }
+
+    @Test
+    void searchUtilisateurs_DoitRetournerListe() {
+        Utilisateur user = new Utilisateur();
+        when(utilisateurService.search("Jean")).thenReturn(List.of(user));
+
+        ResponseEntity<List<Utilisateur>> response = controller.searchUtilisateurs("Jean");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, response.getBody().size());
+        verify(utilisateurService).search("Jean");
     }
 }
