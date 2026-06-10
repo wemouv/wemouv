@@ -92,7 +92,11 @@ L'API sera disponible par défaut à l'adresse : `http://localhost:8080` (ou le 
 
 Une fois l'application démarrée, vous pouvez visualiser et tester l'ensemble des endpoints REST en accédant à l'interface Swagger :
 
-👉 **[http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)**
+👉 Local : **[http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)**
+
+👉 Web : **[https://wemouv.onrender.com/swagger-ui/index.html](https://wemouv.onrender.com/swagger-ui/index.html)**
+
+
 
 ---
 
