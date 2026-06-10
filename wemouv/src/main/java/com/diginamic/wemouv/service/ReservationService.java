@@ -130,6 +130,9 @@ public class ReservationService {
      */
     public Reservation confirmer(Long id) {
         Reservation reservation = findById(id);
+        if (reservation.getStatut() != Statut.EN_ATTENTE) {
+            throw new IllegalStateException("Seules les réservations en attente peuvent être validées");
+        }
         reservation.setStatut(Statut.CONFIRME);
         return reservationRepository.save(reservation);
     }
