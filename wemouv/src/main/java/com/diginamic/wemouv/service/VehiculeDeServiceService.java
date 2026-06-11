@@ -231,7 +231,7 @@ public class VehiculeDeServiceService {
      */
     @Transactional
     public void delete(Long id) {
-        //  On récupère le vrai véhicule (ou on lève une exception s'il n'existe pas)
+        //  On récupère le vrai véhicule
         VehiculeDeService vehiculeDeService = vehiculeDeServiceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Véhicule de service introuvable pour suppression"));
 
@@ -243,11 +243,11 @@ public class VehiculeDeServiceService {
     }
 
     @Transactional
-    public void changerStatut(Long id, Disponibilite nouveauStatut) {
+    public void changerStatut(Long id, Disponibilite nouvelleDisponibilite) {
         VehiculeDeService vehicule = vehiculeDeServiceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Véhicule introuvable"));
 
-        vehicule.setDisponibilite(nouveauStatut);
+        vehicule.setDisponibilite(nouvelleDisponibilite);
         vehiculeDeServiceRepository.save(vehicule);
     }
 }
