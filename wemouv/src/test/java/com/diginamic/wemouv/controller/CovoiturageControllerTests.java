@@ -105,12 +105,14 @@ class CovoiturageControllerTests {
     @Test
     void createCovoiturage_QuandErreur_DoitRetourner500() {
         CovoiturageRequest request = new CovoiturageRequest();
+
         when(covoiturageService.create(request)).thenThrow(new RuntimeException("Erreur création"));
 
         ResponseEntity<?> response = controller.createCovoiturage(request);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("Erreur création", response.getBody());
+
+        assertEquals("Une erreur interne est survenue lors de la création.", response.getBody());
     }
 
     @Test
