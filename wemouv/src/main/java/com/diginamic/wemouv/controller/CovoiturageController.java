@@ -8,6 +8,8 @@ import com.diginamic.wemouv.service.AnnuleParticiaptionCovoiturage;
 import com.diginamic.wemouv.service.CovoiturageService;
 import com.diginamic.wemouv.service.RechercheCovoiturage;
 import com.diginamic.wemouv.service.ReserverCovoiturage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +26,9 @@ import java.util.Map;
 @RequestMapping("/api/covoiturages")
 public class CovoiturageController {
 
+    // --- AJOUT DU LOGGER ---
+    private static final Logger logger = LoggerFactory.getLogger(CovoiturageController.class);
+
     /** Le service métier contenant la logique globale des covoiturages. */
     private final CovoiturageService covoiturageService;
 
@@ -38,11 +43,6 @@ public class CovoiturageController {
 
     /**
      * Constructeur avec injection des services dédiés.
-     *
-     * @param covoiturageService le service gérant la logique métier générale des covoiturages
-     * @param rechercheCovoiturage le service gérant les filtres de recherche
-     * @param reserverCovoiturage le service gérant les inscriptions
-     * @param annuleParticiaptionCovoiturage le service gérant les annulations
      */
     public CovoiturageController(CovoiturageService covoiturageService,
                                  RechercheCovoiturage rechercheCovoiturage,
@@ -54,25 +54,11 @@ public class CovoiturageController {
         this.annuleParticiaptionCovoiturage = annuleParticiaptionCovoiturage;
     }
 
-    /**
-     * Récupère la liste complète de tous les covoiturages enregistrés en base de données.
-     *
-     * @return un {@link ResponseEntity} contenant la liste de l'intégralité des covoiturages (HTTP 200)
-     */
     @GetMapping
     public ResponseEntity<List<Covoiturage>> getAllCovoiturages() {
         return ResponseEntity.ok(covoiturageService.findAll());
     }
 
-    /**
-     * Recherche des covoiturages selon des critères optionnels.
-     * <p>Permet de filtrer la liste globale en fonction de l'adresse, de la date ou du statut.</p>
-     * @param depart fragment ou totalité de l'adresse de départ recherchée (optionnel)
-     * @param arrivee fragment ou totalité de l'adresse d'arrivée recherchée (optionnel)
-     * @param date date et heure de départ recherchées (optionnel)
-     * @param statut statut spécifique du trajet (optionnel)
-     * @return la liste des covoiturages correspondant aux critères actifs
-     */
     @GetMapping("/recherche")
     public List<Covoiturage> rechercherCovoiturages(
             @RequestParam(value = "depart", required = false) String depart,
@@ -82,30 +68,17 @@ public class CovoiturageController {
         return rechercheCovoiturage.rechercher(depart, arrivee, date, statut);
     }
 
-    /**
-     * Récupère un covoiturage spécifique par son identifiant unique.
-     *
-     * @param id l'identifiant unique du covoiturage recherché
-     * @return un {@link ResponseEntity} contenant le covoiturage s'il est trouvé (HTTP 200),
-     * ou une réponse vide avec le statut HTTP 404 (Not Found)
-     */
     @GetMapping("/{id}")
     public ResponseEntity<?> getCovoiturageById(@PathVariable("id") Long id) {
         try {
             Covoiturage covoiturage = covoiturageService.findById(id);
             return ResponseEntity.ok(covoiturage);
         } catch (RuntimeException e) {
+            // Pour un 404, un simple log info ou rien suffit.
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
-    /**
-     * Crée et enregistre un nouveau covoiturage dans le système.
-     *
-     * @param request DTO contenant les informations du trajet à créer
-     * @return un {@link ResponseEntity} contenant le covoiturage créé avec le statut HTTP 201 (Created),
-     * ou un statut HTTP 500 (Internal Server Error) en cas d'échec
-     */
     @PostMapping
     public ResponseEntity<?> createCovoiturage(
             @RequestBody CovoiturageRequest request
@@ -116,21 +89,14 @@ public class CovoiturageController {
                     .status(HttpStatus.CREATED)
                     .body(savedCovoiturage);
         } catch (Exception e) {
-            e.printStackTrace();
+
+            logger.error("Erreur lors de la création du covoiturage", e);
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());
+                    .body("Une erreur interne est survenue lors de la création.");
         }
     }
 
-    /**
-     * Met à jour un covoiturage existant.
-     *
-     * @param id identifiant du covoiturage à modifier
-     * @param request DTO contenant les nouvelles informations du trajet
-     * @return le covoiturage mis à jour (HTTP 200),
-     * HTTP 404 si introuvable, ou HTTP 500 en cas d'erreur
-     */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateCovoiturage(
             @PathVariable("id") Long id,
@@ -140,26 +106,18 @@ public class CovoiturageController {
             Covoiturage updatedCovoiturage = covoiturageService.update(id, request);
             return ResponseEntity.ok(updatedCovoiturage);
         } catch (RuntimeException e) {
-            e.printStackTrace();
+            // Exception métier (ex: Non trouvé)
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body(e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Erreur lors de la mise à jour du covoiturage avec l'ID {}", id, e);
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());
+                    .body("Une erreur interne est survenue lors de la mise à jour.");
         }
     }
 
-    /**
-     * Supprime définitivement un covoiturage du système.
-     *
-     * @param id identifiant du covoiturage à supprimer
-     * @return HTTP 204 si la suppression est réussie,
-     * HTTP 404 si le covoiturage est introuvable,
-     * ou HTTP 500 en cas d'erreur serveur
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCovoiturage(
             @PathVariable("id") Long id
@@ -168,27 +126,17 @@ public class CovoiturageController {
             covoiturageService.delete(id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
-            e.printStackTrace();
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body(e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Erreur lors de la suppression du covoiturage avec l'ID {}", id, e);
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());
+                    .body("Une erreur interne est survenue lors de la suppression.");
         }
     }
 
-    /**
-     * Permet à un utilisateur de réserver une place (participer) dans un covoiturage.
-     *
-     * @param covoiturageId l'identifiant du trajet sur lequel s'inscrire
-     * @param utilisateurId l'identifiant du passager qui effectue la réservation
-     * @return un {@link ResponseEntity} contenant l'objet participation créé (HTTP 201),
-     * un statut HTTP 400 (Bad Request) avec le message d'erreur si le trajet est complet,
-     * ou un statut HTTP 404 (Not Found) si les ressources sont introuvables
-     */
     @PostMapping("/{covoiturageId}/participer/{utilisateurId}")
     public ResponseEntity<?> participer(
             @PathVariable("covoiturageId") Long covoiturageId,
@@ -203,14 +151,6 @@ public class CovoiturageController {
         }
     }
 
-    /**
-     * Permet à un utilisateur d'annuler sa participation à un covoiturage.
-     *
-     * @param covoiturageId l'identifiant du trajet concerné
-     * @param utilisateurId l'identifiant du passager qui annule sa réservation
-     * @return un {@link ResponseEntity} vide avec le statut HTTP 204 (No Content) en cas de succès,
-     * ou un statut HTTP 404 (Not Found) si la participation n'existe pas
-     */
     @DeleteMapping("/{covoiturageId}/participer/{utilisateurId}")
     public ResponseEntity<?> annulerParticipation(
             @PathVariable("covoiturageId") Long covoiturageId,
@@ -223,15 +163,6 @@ public class CovoiturageController {
         }
     }
 
-    /**
-     * Récupère les réservations d'un passager.
-     * <p>Cette méthode extrait les trajets d'un utilisateur sous forme de dictionnaire (Map)
-     * répartis entre les covoiturages futurs ("enCours") et passés ("historique").</p>
-     *
-     * @param utilisateurId l'identifiant du passager connecté
-     * @return un {@link ResponseEntity} contenant la Map structurée des trajets (HTTP 200),
-     * ou un statut HTTP 404 (Not Found) si le passager est introuvable
-     */
     @GetMapping("/mes-reservations/{utilisateurId}")
     public ResponseEntity<?> getMesReservations(@PathVariable Long utilisateurId) {
         try {
@@ -242,15 +173,6 @@ public class CovoiturageController {
         }
     }
 
-    /**
-     * Permet à l'organisateur/conducteur de voir les covoiturages qu'il propose.
-     * <p>Cette méthode extrait les annonces d'un chauffeur sous forme de dictionnaire (Map)
-     * répartis entre ses trajets planifiés ("enCours") et ses anciens trajets ("historique").</p>
-     *
-     * @param conducteurId l'identifiant unique du chauffeur connecté
-     * @return un {@link ResponseEntity} contenant la Map structurée de ses annonces (HTTP 200),
-     * ou un statut HTTP 404 (Not Found) si le chauffeur est introuvable
-     */
     @GetMapping("/mes-annonces/{conducteurId}")
     public ResponseEntity<?> getMesAnnonces(@PathVariable Long conducteurId) {
         try {

@@ -28,7 +28,7 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     private final PasswordEncoder passwordEncoder;
 
     /**
-     * Constructeur principal permettant l'injection des dépendances (IoC) par Spring.
+     * Constructeur principal permettant l'injection des dépendances par Spring.
      *
      * @param utilisateurRepository le composant d'accès aux données des utilisateurs
      * @param emailService          le service dédié à l'envoi des courriels
