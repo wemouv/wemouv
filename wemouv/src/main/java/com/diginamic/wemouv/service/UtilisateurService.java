@@ -3,207 +3,100 @@ package com.diginamic.wemouv.service;
 import com.diginamic.wemouv.dto.RegisterRequest;
 import com.diginamic.wemouv.dto.UtilisateurUpdateRequest;
 import com.diginamic.wemouv.entity.Utilisateur;
-import com.diginamic.wemouv.enums.Role;
-import com.diginamic.wemouv.repository.UtilisateurRepository;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
- * Service métier gérant les profils des collaborateurs (utilisateurs).
+ * Contrat d'interface définissant les opérations métier disponibles pour la gestion des utilisateurs.
  * <p>
- * Cette classe assure la consultation, la création, la modification,
- * la désactivation (soft delete) et la réactivation des comptes utilisateurs
- * au sein de l'application.
+ * Ce service agit comme une façade pour les contrôleurs, garantissant un couplage faible.
+ * Il regroupe l'ensemble des actions possibles sur les collaborateurs : récupération,
+ * création, mise à jour, recherches avancées et gestion du cycle de vie (activation/désactivation).
  * </p>
  */
-@Service
-public class UtilisateurService {
-
-    /** Dépôt d'accès aux données des utilisateurs. */
-    private final UtilisateurRepository utilisateurRepository;
-    private final EmailService emailService;
-    private final PasswordEncoder passwordEncoder;
+public interface UtilisateurService {
 
     /**
-     * Constructeur avec injection des dépendances requises.
+     * Récupère la liste exhaustive de tous les utilisateurs enregistrés dans le système.
      *
-     * @param utilisateurRepository le dépôt pour interagir avec la table utilisateur
-     * @param emailService le service d'envoi d'emails
-     * @param passwordEncoder l'encodeur de mot de passe
+     * @return une liste contenant toutes les entités {@link Utilisateur}
      */
-    public UtilisateurService(UtilisateurRepository utilisateurRepository,
-                              EmailService emailService,
-                              PasswordEncoder passwordEncoder) {
-        this.utilisateurRepository = utilisateurRepository;
-        this.emailService = emailService;
-        this.passwordEncoder = passwordEncoder;
-    }
+    List<Utilisateur> findAll();
 
     /**
-     * Récupère la liste de tous les collaborateurs inscrits.
+     * Recherche un utilisateur par son identifiant technique unique.
      *
-     * @return la liste globale des utilisateurs
+     * @param id l'identifiant de l'utilisateur recherché
+     * @return l'entité {@link Utilisateur} correspondante
+     * @throws RuntimeException (selon l'implémentation) si l'identifiant n'existe pas
      */
-    public List<Utilisateur> findAll() {
-        return utilisateurRepository.findAll();
-    }
+    Utilisateur findById(Long id);
 
     /**
-     * Recherche un collaborateur par son identifiant unique.
+     * Recherche un utilisateur via son adresse e-mail de connexion.
      *
-     * @param id l'identifiant recherché
-     * @return l'utilisateur correspondant
-     * @throws RuntimeException si l'utilisateur n'existe pas en base
+     * @param email l'adresse e-mail exacte à rechercher
+     * @return l'entité {@link Utilisateur} correspondante
+     * @throws RuntimeException (selon l'implémentation) si aucun compte n'est lié à cet e-mail
      */
-    public Utilisateur findById(Long id) {
-        return utilisateurRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
-    }
+    Utilisateur findByEmail(String email);
 
     /**
-     * Recherche un collaborateur via son adresse e-mail.
+     * Inscrit un nouvel utilisateur dans le système à partir des données fournies.
+     * La logique métier sous-jacente gère généralement la génération de mot de passe,
+     * l'attribution du rôle et l'envoi d'e-mails d'activation.
      *
-     * @param email l'e-mail recherché
-     * @return l'utilisateur correspondant
-     * @throws RuntimeException si aucun utilisateur ne possède cet e-mail
+     * @param request le DTO contenant les informations nécessaires à la création (nom, email, rôle, etc.)
+     * @return l'entité {@link Utilisateur} telle qu'elle a été sauvegardée en base (avec son nouvel ID)
      */
-    public Utilisateur findByEmail(String email) {
-        return utilisateurRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
-    }
+    Utilisateur create(RegisterRequest request);
 
     /**
-     * Enregistre un nouvel utilisateur en base de données.
-     * <p>
-     * Génère un token temporaire, envoie un email d'activation
-     * et crée le compte avec un statut inactif.
-     * </p>
+     * Met à jour les informations d'un profil utilisateur existant.
      *
-     * @param request le DTO contenant les informations du nouveau compte
-     * @return l'utilisateur sauvegardé avec son ID généré
+     * @param id      l'identifiant de l'utilisateur à modifier
+     * @param details le DTO contenant les nouvelles informations (seuls les champs renseignés sont mis à jour)
+     * @return l'entité {@link Utilisateur} après l'application des modifications
      */
-
-    public Utilisateur create(RegisterRequest request) {
-        String tokenTemporaire = UUID.randomUUID().toString();
-
-        Utilisateur utilisateur = new Utilisateur();
-        utilisateur.setNom(request.getNom());
-        utilisateur.setPrenom(request.getPrenom());
-        utilisateur.setEmail(request.getEmail());
-        utilisateur.setAdresse(request.getAdresse());
-        if (request.getRole() != null) {
-            utilisateur.setRole(Role.valueOf(request.getRole().toUpperCase()));
-        }
-        utilisateur.setMotDePasse(passwordEncoder.encode(tokenTemporaire));
-        utilisateur.setCompteActif(false);
-
-        Utilisateur nouvelUtilisateur = utilisateurRepository.save(utilisateur);
-
-        String lienConfiguration = "http://localhost:4200/initialiser-mot-de-passe?token="
-                + tokenTemporaire + "&email=" + nouvelUtilisateur.getEmail();
-
-        String sujet = "WeMouv : Activation de votre compte collaborateur";
-        String corps = "Bonjour " + nouvelUtilisateur.getPrenom() + ",\n\n"
-                + "Un compte a été créé pour vous sur l'application WeMouv.\n"
-                + "Veuillez cliquer sur le lien ci-dessous pour configurer votre mot de passe et activer votre compte :\n\n"
-                + lienConfiguration + "\n\n"
-                + "À bientôt,\nL'équipe WeMouv.";
-
-        emailService.sendMail(nouvelUtilisateur.getEmail(), sujet, corps);
-
-        return nouvelUtilisateur;
-    }
+    Utilisateur update(Long id, UtilisateurUpdateRequest details);
 
     /**
-     * Met à jour les informations d'un utilisateur existant.
+     * Supprime définitivement (Hard Delete) un utilisateur du système.
      *
-     * @param id l'identifiant du collaborateur à modifier
-     * @param details les nouvelles données du profil
-     * @return l'utilisateur mis à jour
-     * @throws RuntimeException si l'utilisateur est introuvable
+     * @param id l'identifiant de l'utilisateur à supprimer
      */
-    @Transactional
-    public Utilisateur update(Long id, UtilisateurUpdateRequest details) {
-        Utilisateur existing = findById(id);
-        if (details.getNom() != null) existing.setNom(details.getNom());
-        if (details.getPrenom() != null) existing.setPrenom(details.getPrenom());
-        if (details.getEmail() != null) existing.setEmail(details.getEmail());
-        if (details.getAdresse() != null) existing.setAdresse(details.getAdresse());
-        return utilisateurRepository.save(existing);
-    }
+    void delete(Long id);
 
     /**
-     * Supprime définitivement un utilisateur de la base de données (Hard Delete).
+     * Désactive un compte utilisateur (Soft Delete) sans le supprimer de la base de données.
+     * Cette action révoque ses droits d'accès à la plateforme.
      *
-     * @param id l'identifiant de l'utilisateur à détruire
-     * @throws RuntimeException si l'utilisateur est introuvable
+     * @param id l'identifiant de l'utilisateur à désactiver
      */
-    public void delete(Long id) {
-        if (!utilisateurRepository.existsById(id)) {
-            throw new RuntimeException("Utilisateur introuvable pour suppression");
-        }
-        utilisateurRepository.deleteById(id);
-    }
+    void softDelete(Long id);
 
     /**
-     * Désactive le compte d'un utilisateur sans le supprimer de la base (Soft Delete).
-     * <p>Passe la propriété {@code compteActif} à {@code false}.</p>
+     * Réactive un compte utilisateur préalablement désactivé, lui redonnant accès à la plateforme.
      *
-     * @param id l'identifiant du collaborateur à désactiver
-     * @throws RuntimeException si l'utilisateur est introuvable
+     * @param id l'identifiant de l'utilisateur à réactiver
      */
-    public void softDelete(Long id) {
-        Utilisateur u = utilisateurRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable pour désactivation"));
-        u.setCompteActif(false);
-        utilisateurRepository.save(u);
-    }
+    void reactivate(Long id);
 
     /**
-     * Réactive le compte d'un utilisateur précédemment désactivé.
-     * <p>Passe la propriété {@code compteActif} à {@code true}.</p>
+     * Effectue une recherche globale sur les utilisateurs à partir d'un mot-clé.
+     * Le filtre s'applique généralement sur le nom, le prénom ou l'adresse e-mail.
      *
-     * @param id l'identifiant du collaborateur à réactiver
-     * @throws RuntimeException si l'utilisateur est introuvable
+     * @param terme le mot-clé ou la chaîne de caractères à rechercher
+     * @return une liste filtrée d'entités {@link Utilisateur} correspondant au critère
      */
-    public void reactivate(Long id) {
-        Utilisateur u = utilisateurRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable pour réactivation"));
-        u.setCompteActif(true);
-        utilisateurRepository.save(u);
-    }
+    List<Utilisateur> search(String terme);
 
     /**
-     * Recherche des utilisateurs par terme (nom, prénom ou email).
+     * Sauvegarde ou met à jour directement une entité utilisateur.
+     * Opération de bas niveau souvent réservée aux traitements internes de l'application.
      *
-     * @param terme le terme de recherche
-     * @return la liste des utilisateurs correspondants
+     * @param utilisateur l'entité {@link Utilisateur} à persister
+     * @return l'entité sauvegardée
      */
-    public List<Utilisateur> search(String terme) {
-        if (terme == null || terme.isBlank()) {
-            return findAll();
-        }
-        String termeMinuscule = terme.toLowerCase();
-        return findAll().stream()
-                .filter(u -> {
-                    boolean matchEmail = u.getEmail() != null && u.getEmail().toLowerCase().contains(termeMinuscule);
-                    boolean matchNom = u.getNom() != null && u.getNom().toLowerCase().contains(termeMinuscule);
-                    boolean matchPrenom = u.getPrenom() != null && u.getPrenom().toLowerCase().contains(termeMinuscule);
-                    return matchEmail || matchNom || matchPrenom;
-                })
-                .toList();
-    }
-    /**
-     * Sauvegarde directe d'un utilisateur (utilisé pour les mises à jour internes).
-     *
-     * @param utilisateur l'entité à persister
-     * @return l'utilisateur sauvegardé
-     */
-    public Utilisateur save(Utilisateur utilisateur) {
-        return utilisateurRepository.save(utilisateur);
-    }
+    Utilisateur save(Utilisateur utilisateur);
 }

@@ -149,7 +149,7 @@ class VehiculeRepositoryTests {
         v.setMotorisation(motorisation);
         v.setNbPlace(nbPlace);
         v.setCategorie(categorie);
-        v.setStatut(Disponibilite.DISPONIBLE);
+        v.setDisponibilite(Disponibilite.DISPONIBLE);
         v.setLocalisation("Parking A");
         return v;
     }

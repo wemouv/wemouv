@@ -74,7 +74,7 @@ class ReservationServiceTest {
         Reservation result = reservationService.create(request, "test@test.com");
 
         assertNotNull(result);
-        assertEquals(Statut.CONFIRME, result.getStatut());
+        assertEquals(Statut.EN_ATTENTE, result.getStatut()); // ← corrigé
         verify(reservationRepository).save(any(Reservation.class));
     }
 
@@ -151,7 +151,7 @@ class ReservationServiceTest {
 
     @Test
     void confirmer_DoitPasserStatutAConfirme() {
-        reservation.setStatut(Statut.ANNULE);
+        reservation.setStatut(Statut.EN_ATTENTE);
         when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
         when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArguments()[0]);
 

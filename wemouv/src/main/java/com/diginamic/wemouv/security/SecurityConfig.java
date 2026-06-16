@@ -90,6 +90,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/vehicules/service/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/vehicules/service/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/vehicules/service/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/vehicules/service/**").hasRole("ADMIN")
 
 
                         // Toutes les autres requêtes nécessitent au minimum d'être connecté
@@ -132,7 +133,7 @@ public class SecurityConfig {
         );
 
         configuration.setAllowedMethods(
-                List.of("GET", "POST", "PUT", "PATCH","DELETE", "OPTIONS")
+                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH")
         );
 
         configuration.setAllowedHeaders(

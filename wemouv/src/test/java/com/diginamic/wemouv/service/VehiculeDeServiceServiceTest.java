@@ -49,10 +49,10 @@ class VehiculeDeServiceServiceTest {
         // ARRANGE
         Long id = 1L;
         VehiculeDeService vehicule = new VehiculeDeService();
-        vehicule.setStatut(Disponibilite.DISPONIBLE);
+        vehicule.setDisponibilite(Disponibilite.DISPONIBLE);
 
         VehiculeDeService modifs = new VehiculeDeService();
-        modifs.setStatut(Disponibilite.EN_REPARATION);
+        modifs.setDisponibilite(Disponibilite.EN_REPARATION);
 
         // Initialisation de l'utilisateur avec email pour éviter les erreurs NullPointerException
         Utilisateur organisateur = new Utilisateur();
@@ -86,7 +86,7 @@ class VehiculeDeServiceServiceTest {
         // ARRANGE
         VehiculeDeService v1 = new VehiculeDeService();
         v1.setId(1L);
-        v1.setStatut(Disponibilite.DISPONIBLE);
+        v1.setDisponibilite(Disponibilite.DISPONIBLE);
 
         Reservation res = new Reservation();
         res.setDateDebut(LocalDateTime.now().plusDays(1));

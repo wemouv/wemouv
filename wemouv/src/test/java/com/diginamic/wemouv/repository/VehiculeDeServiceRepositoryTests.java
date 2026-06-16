@@ -68,7 +68,7 @@ class VehiculeDeServiceRepositoryTests {
         List<VehiculeDeService> enReparation = vehiculeDeServiceRepository.findByStatut(Disponibilite.EN_REPARATION);
 
         assertEquals(2, disponibles.size());
-        assertTrue(disponibles.stream().allMatch(v -> v.getStatut() == Disponibilite.DISPONIBLE));
+        assertTrue(disponibles.stream().allMatch(v -> v.getDisponibilite() == Disponibilite.DISPONIBLE));
         assertEquals(1, enReparation.size());
         assertEquals("AB-706-FF", enReparation.get(0).getImmatriculation());
     }
@@ -129,7 +129,7 @@ class VehiculeDeServiceRepositoryTests {
         v.setMotorisation(Motorisation.ESSENCE);
         v.setNbPlace(5);
         v.setCategorie(Categorie.BERLINE);
-        v.setStatut(statut);
+        v.setDisponibilite(statut);
         v.setLocalisation(localisation);
         return v;
     }

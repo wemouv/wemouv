@@ -119,7 +119,7 @@ public class VehiculeDeServiceService {
         return vehiculeDeServiceRepository.findAll()
                 .stream()
                 // Filtrer par statut disponible
-                .filter(v -> v.getStatut() == Disponibilite.DISPONIBLE)
+                .filter(v -> v.getDisponibilite() == Disponibilite.DISPONIBLE)
                 // Filtrer l'absence de chevauchement de réservation
                 .filter(v -> {
                     List<Reservation> reservations = reservationRepository.findByVehiculeId(v.getId());
@@ -137,7 +137,7 @@ public class VehiculeDeServiceService {
      * @return le véhicule de service persisté
      */
     public VehiculeDeService create(VehiculeDeService vehicule) {
-        vehicule.setStatut(Disponibilite.DISPONIBLE);
+        vehicule.setDisponibilite(Disponibilite.DISPONIBLE);
         return vehiculeDeServiceRepository.save(vehicule);
     }
 
@@ -158,8 +158,8 @@ public class VehiculeDeServiceService {
         VehiculeDeService vehicule = vehiculeDeServiceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Véhicule de service introuvable pour mise à jour"));
 
-        Disponibilite ancienneDispo = vehicule.getStatut();
-        Disponibilite nouvelleDispo = details.getStatut();
+        Disponibilite ancienneDispo = vehicule.getDisponibilite();
+        Disponibilite nouvelleDispo = details.getDisponibilite();
 
         // Mise à jour de la fiche technique
         vehicule.setImmatriculation(details.getImmatriculation());
@@ -170,7 +170,7 @@ public class VehiculeDeServiceService {
         vehicule.setPhotoUrl(details.getPhotoUrl());
         vehicule.setCo2Km(details.getCo2Km());
         vehicule.setCategorie(details.getCategorie());
-        vehicule.setStatut(nouvelleDispo);
+        vehicule.setDisponibilite(nouvelleDispo);
 
         VehiculeDeService saved = vehiculeDeServiceRepository.save(vehicule);
 
@@ -222,16 +222,32 @@ public class VehiculeDeServiceService {
         }
     }
 
+
     /**
-     * Supprime définitivement un véhicule de service du catalogue du parc automobile.
+     * Passe un véhicule de service en HORS_SERVICE (suppression logique).
      *
-     * @param id l'identifiant du véhicule à supprimer
+     * @param id l'identifiant du véhicule à archiver
      * @throws RuntimeException si le véhicule est introuvable
      */
+    @Transactional
     public void delete(Long id) {
-        if (!vehiculeDeServiceRepository.existsById(id)) {
-            throw new RuntimeException("Véhicule de service introuvable pour suppression");
-        }
-        vehiculeDeServiceRepository.deleteById(id);
+        //  On récupère le vrai véhicule
+        VehiculeDeService vehiculeDeService = vehiculeDeServiceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Véhicule de service introuvable pour suppression"));
+
+        //  On change son statut
+        vehiculeDeService.setDisponibilite(Disponibilite.HORS_SERVICE);
+
+        //  On sauvegarde les modifications
+        vehiculeDeServiceRepository.save(vehiculeDeService);
+    }
+
+    @Transactional
+    public void changerStatut(Long id, Disponibilite nouvelleDisponibilite) {
+        VehiculeDeService vehicule = vehiculeDeServiceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Véhicule introuvable"));
+
+        vehicule.setDisponibilite(nouvelleDisponibilite);
+        vehiculeDeServiceRepository.save(vehicule);
     }
 }

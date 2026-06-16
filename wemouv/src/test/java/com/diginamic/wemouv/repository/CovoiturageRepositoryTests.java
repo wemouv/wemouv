@@ -253,7 +253,7 @@ class CovoiturageRepositoryTests {
         v.setMotorisation(Motorisation.ESSENCE);
         v.setNbPlace(5);
         v.setCategorie(Categorie.BERLINE);
-        v.setStatut(Disponibilite.DISPONIBLE);
+        v.setDisponibilite(Disponibilite.DISPONIBLE);
         v.setLocalisation("Parking A");
         return v;
     }

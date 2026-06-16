@@ -27,6 +27,14 @@
 
 ---
 
+## 🌐 Accès en Ligne
+
+L'application est déployée et accessible publiquement via le lien suivant :
+
+👉 Web : **[https://wemouv-frontend.onrender.com/](https://wemouv-frontend.onrender.com/)**
+
+---
+
 ## 🛠️ Stack Technique
 
 Le projet repose sur un écosystème moderne de développement Java/Spring :
