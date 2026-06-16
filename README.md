@@ -1,5 +1,4 @@
 [![Mise en place CI/CD](https://github.com/wemouv/wemouv/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/wemouv/wemouv/actions/workflows/ci-cd.yml)
-[![Mise en place CI/CD](https://github.com/wemouv/wemouv/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/wemouv/wemouv/actions/workflows/ci-cd.yml)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=wemouv_wemouv&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=wemouv_wemouv)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=wemouv_wemouv&metric=coverage)](https://sonarcloud.io/summary/new_code?id=wemouv_wemouv)
 [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=wemouv_wemouv&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=wemouv_wemouv)
