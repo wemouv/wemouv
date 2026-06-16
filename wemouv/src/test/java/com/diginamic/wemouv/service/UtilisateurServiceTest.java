@@ -26,7 +26,7 @@ class UtilisateurServiceTest {
     @Mock private UtilisateurRepository utilisateurRepository;
     @Mock private EmailService emailService;
     @Mock private PasswordEncoder passwordEncoder;
-    @InjectMocks private UtilisateurService utilisateurService;
+    @InjectMocks private UtilisateurServiceImpl utilisateurService;
 
     @Test
     void findAll_DoitRetournerListe() {
