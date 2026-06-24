@@ -5,6 +5,7 @@ import com.diginamic.wemouv.enums.Disponibilite;
 import com.diginamic.wemouv.service.VehiculeDeServiceService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -143,7 +144,7 @@ public class VehiculeDeServiceController {
         }
     }
 
-
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/statut")
     public ResponseEntity<Void> changerStatut(
             @PathVariable Long id,

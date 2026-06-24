@@ -4,8 +4,10 @@ import com.diginamic.wemouv.dto.RegisterRequest;
 import com.diginamic.wemouv.dto.UtilisateurUpdateRequest;
 import com.diginamic.wemouv.entity.Utilisateur;
 import com.diginamic.wemouv.service.UtilisateurService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,8 +55,9 @@ public class UtilisateurController {
      * @param details le DTO contenant les informations du nouveau compte
      * @return un {@link ResponseEntity} contenant l'utilisateur créé (HTTP 201)
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<?> createUtilisateur(@RequestBody RegisterRequest details) {
+    public ResponseEntity<?> createUtilisateur(@Valid  @RequestBody RegisterRequest details) {
         try {
             Utilisateur cree = utilisateurService.create(details);
             return ResponseEntity.status(HttpStatus.CREATED).body(cree);

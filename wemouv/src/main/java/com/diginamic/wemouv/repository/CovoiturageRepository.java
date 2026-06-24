@@ -4,6 +4,9 @@ import com.diginamic.wemouv.entity.Covoiturage;
 import com.diginamic.wemouv.entity.Vehicule;
 import com.diginamic.wemouv.enums.Statut;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -22,7 +25,7 @@ import java.util.List;
  * </p>
  */
 @Repository
-public interface CovoiturageRepository extends JpaRepository<Covoiturage, Long> {
+public interface CovoiturageRepository extends JpaRepository<Covoiturage, Long> , JpaSpecificationExecutor<Covoiturage> {
 
     /**
      * Récupère l'intégralité des covoiturages enregistrés en base.
@@ -130,5 +133,11 @@ public interface CovoiturageRepository extends JpaRepository<Covoiturage, Long> 
      * @return la liste des covoiturages futurs impactant ce véhicule
      */
     List<Covoiturage> findByVehiculeAndDateDepartAfter(Vehicule vehicule, LocalDateTime date);
+
+
+    @Query("SELECT c FROM Covoiturage c WHERE c.adresseDepart = :depart AND c.nbPlacesRestantes > 0")
+    List<Covoiturage> rechercherTrajetsDisponibles(
+            @Param("depart") String depart
+    );
 
 }

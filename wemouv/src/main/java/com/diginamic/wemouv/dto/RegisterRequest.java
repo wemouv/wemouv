@@ -22,7 +22,7 @@ public class RegisterRequest {
     /** Le mot de passe en clair saisi lors de l'inscription (sera haché par le Backend). */
     private String password;
 
-    /** Le rôle du collaborateur (ex: "ADMIN", "USER", "CHAUFFEUR") transmis sous forme de texte. */
+    /** Le rôle du collaborateur (ex: "ADMIN", "USER" ).  */
     private String role;
 
     /** L'adresse postale personnelle ou professionnelle du collaborateur. */

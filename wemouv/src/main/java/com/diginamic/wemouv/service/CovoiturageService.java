@@ -10,6 +10,8 @@ import com.diginamic.wemouv.repository.CovoiturageRepository;
 import com.diginamic.wemouv.repository.ParticipationCovoiturageRepository;
 import com.diginamic.wemouv.repository.UtilisateurRepository;
 import com.diginamic.wemouv.repository.VehiculeRepository;
+import com.diginamic.wemouv.specification.CovoiturageSpecifications;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -391,4 +393,27 @@ public class CovoiturageService {
 
         return resultat;
     }
+
+    /**
+     *
+     * @param depart
+     * @param arrivee
+     * @param date
+     * @param statut
+     * @return
+     */
+    public List<Covoiturage> filtrer(String depart, String arrivee, String categorieVehicule, Statut statut) {
+
+        Specification<Covoiturage> spec = Specification
+                .where(CovoiturageSpecifications.hasDepart(depart))
+                .and(CovoiturageSpecifications.hasArrivee(arrivee))
+                .and(CovoiturageSpecifications.hasCategorieVehicule(categorieVehicule))
+                .and(CovoiturageSpecifications.hasStatut(statut));
+
+        return covoiturageRepository.findAll(spec);
+    }
+
+
+
+
 }

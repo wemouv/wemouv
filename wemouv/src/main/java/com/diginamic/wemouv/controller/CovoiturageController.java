@@ -10,6 +10,7 @@ import com.diginamic.wemouv.service.RechercheCovoiturage;
 import com.diginamic.wemouv.service.ReserverCovoiturage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -63,7 +64,7 @@ public class CovoiturageController {
     public List<Covoiturage> rechercherCovoiturages(
             @RequestParam(value = "depart", required = false) String depart,
             @RequestParam(value = "arrivee", required = false) String arrivee,
-            @RequestParam(value = "date", required = false) LocalDateTime date,
+            @RequestParam(value = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime date,
             @RequestParam(value = "statut", required = false) Statut statut) {
         return rechercheCovoiturage.rechercher(depart, arrivee, date, statut);
     }
@@ -182,4 +183,19 @@ public class CovoiturageController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
+
+    /**
+     * Filtre multi-critères sur les covoiturages.
+     * Tous les paramètres sont optionnels.
+     */
+    @GetMapping("/filtrer")
+    public List<Covoiturage> filtrer(
+            @RequestParam(required = false) String depart,
+            @RequestParam(required = false) String arrivee,
+            @RequestParam(required = false) String categorieVehicule,
+            @RequestParam(required = false) Statut statut
+    ) {
+        return covoiturageService.filtrer(depart, arrivee, categorieVehicule, statut);
+    }
+
 }

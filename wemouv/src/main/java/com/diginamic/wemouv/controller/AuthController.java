@@ -80,7 +80,7 @@ public class AuthController {
      * ou un statut HTTP 401 (Unauthorized) si les identifiants sont faux
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         try {
 
             Utilisateur completUser = utilisateurService.findByEmail(request.getEmail());
@@ -88,7 +88,7 @@ public class AuthController {
 
             if (completUser == null || Boolean.FALSE.equals(completUser.getCompteActif())) {
                 return ResponseEntity
-                        .status(HttpStatus.FORBIDDEN) // 403 Forbidden
+                        .status(HttpStatus.FORBIDDEN)
                         .body("Votre compte n'est pas encore activé. Veuillez vérifier vos e-mails.");
             }
 
